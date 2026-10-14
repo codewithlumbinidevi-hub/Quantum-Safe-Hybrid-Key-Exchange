@@ -4,7 +4,7 @@ Computes logical vs transpiled gate overhead, estimated SWAP gates,
 and statistical fidelity (Hellinger fidelity and Total Variation Distance) between ideal and noisy execution.
 """
 import math
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 def compute_hellinger_fidelity(counts_ideal: Dict[str, int], counts_noisy: Dict[str, int]) -> float:
@@ -51,21 +51,32 @@ def compute_tvd(counts_ideal: Dict[str, int], counts_noisy: Dict[str, int]) -> f
     return round(min(1.0, max(0.0, tvd)), 4)
 
 
-def calculate_routing_overhead(logical_cx: int, transpiled_cx: int) -> Dict[str, Any]:
+def calculate_routing_overhead(
+    logical_basis_cx: Optional[int] = None,
+    transpiled_cx: int = 0,
+    routing_swaps: int = 0,
+    logical_cx: Optional[int] = None
+) -> Dict[str, Any]:
     """
-    Calculate CX routing overhead and estimated SWAP gates.
-    In standard basis gate sets (rz, sx, x, cx), each SWAP gate is decomposed into 3 CX gates.
+    Calculate CX routing overhead and routing-inserted SWAP gates.
+    Routing CX overhead = transpiled_cx - logical_basis_cx (where logical_basis_cx
+    is the CX count of the logical circuit decomposed to ['rz', 'sx', 'x', 'cx']
+    without coupling constraints).
     
     Returns:
-        Dict with cx_overhead, swap_estimate, and overhead_ratio.
+        Dict with cx_overhead, routing_swaps, and overhead_ratio.
     """
-    cx_overhead = max(0, transpiled_cx - logical_cx)
-    swap_estimate = round(cx_overhead / 3.0, 2)
-    ratio = round(transpiled_cx / max(1, logical_cx), 2)
+    base_cx = logical_basis_cx if logical_basis_cx is not None else (logical_cx if logical_cx is not None else 0)
+    cx_overhead = max(0, transpiled_cx - base_cx)
+    inferred_swaps = cx_overhead // 3
+    final_swaps = routing_swaps if routing_swaps > 0 else inferred_swaps
+    ratio = round(transpiled_cx / max(1, base_cx), 2)
     
     return {
+        "logical_basis_cx": base_cx,
         "cx_overhead": cx_overhead,
-        "swap_gate_estimate": swap_estimate,
+        "routing_swap_count": int(final_swaps),
+        "swap_gate_estimate": float(final_swaps),  # Preserved as float for schema and test compatibility
         "cx_overhead_ratio": ratio,
-        "note": "SWAP gate estimate assumes standard 3-CX decomposition per non-native routing SWAP."
+        "note": f"Routing added {cx_overhead} CX gates ({final_swaps} routing SWAPs) beyond logical basis CX ({base_cx})."
     }

@@ -1,3 +1,0 @@
-trial,ecdh_keygen_ms,ecdh_derivation_ms,total_handshake_ms,ecdh_match,mlkem_match,hybrid_match,handshake_success
-1,0.1092,0.228,0.672,True,True,True,True
-2,0.1043,0.2553,0.6829,True,True,True,True

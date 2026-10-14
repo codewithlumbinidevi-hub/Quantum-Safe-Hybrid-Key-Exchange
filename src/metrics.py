@@ -54,6 +54,9 @@ def calculate_latency_statistics(latencies_ms: Union[List[float], np.ndarray, pd
         "p50_ms": float(np.round(np.percentile(vals, 50), 4)),
         "p95_ms": float(np.round(np.percentile(vals, 95), 4)),
         "p99_ms": float(np.round(np.percentile(vals, 99), 4)),
+        "ci95_margin_ms": float(np.round(1.96 * (np.std(vals, ddof=1) / np.sqrt(len(vals))), 4)) if len(vals) > 1 else 0.0,
+        "ci95_low_ms": float(np.round(np.mean(vals) - (1.96 * (np.std(vals, ddof=1) / np.sqrt(len(vals)))), 4)) if len(vals) > 1 else float(np.round(np.mean(vals), 4)),
+        "ci95_high_ms": float(np.round(np.mean(vals) + (1.96 * (np.std(vals, ddof=1) / np.sqrt(len(vals)))), 4)) if len(vals) > 1 else float(np.round(np.mean(vals), 4)),
         "sample_count": int(len(vals)),
     }
 

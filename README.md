@@ -178,29 +178,33 @@ npm run dev
 | **Total Wire Payload** | - | **130 Bytes** | **2,272 Bytes** | **2,402 Bytes** |
 | Final Shared Key | 32 Bytes | 32 Bytes | 32 Bytes | **32 Bytes (256-bit)** |
 
-> **Payload Overhead**: The hybrid exchange incurs an $18.5\times$ payload expansion over classical ECDH ($2,402$ bytes vs $130$ bytes). This fits easily within two standard TCP packets and standard Ethernet MTU frames.
+> **Payload Overhead**: The hybrid exchange incurs an $18.5	imes$ payload expansion over classical ECDH ($2,402$ bytes vs $130$ bytes). This fits easily within two standard TCP packets and standard Ethernet MTU frames.
 
-### 2. Execution Latency Profiles (N=50 Trials, AMD64 16-Core Host)
-| Operation | Platform A Mean (ms) | Platform A p95 (ms) | Platform B Mean (ms) | Platform B p95 (ms) | Relative Overhead (%) |
+### 2. Execution Latency Profiles (N=200 Trials, AMD64 16-Core Host)
+| Operation / Primitive | Platform A Mean +/- 95% CI (ms) | Platform A p95 (ms) | Platform B Mean +/- 95% CI (ms) | Platform B p95 (ms) | Observed Delta (ms) |
 |---|:---:|:---:|:---:|:---:|:---:|
-| **ECDH KeyGen** | 0.103 ms | 0.138 ms | 0.132 ms | 0.165 ms | +28.2% |
-| **ML-KEM KeyGen** | 0.495 ms | 0.676 ms | 0.620 ms | 0.780 ms | +25.3% |
-| **ECDH Shared Secret** | 0.196 ms | 0.243 ms | 0.235 ms | 0.285 ms | +19.9% |
-| **ML-KEM Encapsulation** | 0.202 ms | 0.317 ms | 0.280 ms | 0.390 ms | +38.6% |
-| **ML-KEM Decapsulation** | 0.161 ms | 0.198 ms | 0.215 ms | 0.270 ms | +33.5% |
-| **HKDF-SHA256 Derivation**| 0.096 ms | 0.131 ms | 0.125 ms | 0.160 ms | +30.2% |
-| **Total Handshake Latency** | **1.258 ms** | **2.007 ms** | **1.675 ms** | **2.106 ms** | **+33.1%** |
+| ECDH KeyGen (secp256r1) | 0.089 +/- 0.005 | 0.142 | 0.087 +/- 0.017 | 0.139 | -0.002 |
+| ML-KEM KeyGen (FIPS 203) | 0.438 +/- 0.016 | 0.613 | 0.405 +/- 0.036 | 0.613 | -0.033 |
+| ECDH Shared Secret (secp256r1) | 0.182 +/- 0.007 | 0.255 | 0.173 +/- 0.019 | 0.238 | -0.010 |
+| ML-KEM Encapsulation (FIPS 203) | 0.168 +/- 0.007 | 0.248 | 0.154 +/- 0.018 | 0.242 | -0.013 |
+| ML-KEM Decapsulation (FIPS 203) | 0.147 +/- 0.006 | 0.211 | 0.154 +/- 0.045 | 0.198 | +0.006 |
+| Hybrid HKDF-SHA256 Derivation | 0.072 +/- 0.006 | 0.115 | 0.110 +/- 0.071 | 0.112 | +0.039 |
+| **Total Hybrid Handshake Latency** | 1.414 +/- 0.054 | 2.030 | 1.389 +/- 0.134 | 2.859 | -0.025 |
 
-### 3. Quantum Architecture Routing Comparison (QFT-5 Benchmark, 4096 Shots)
-| Metric | Logical Circuit | Processor A (5Q Linear) | Processor B (9Q Heavy-Hex) | Processor B Advantage |
-|---|:---:|:---:|:---:|:---:|
-| **Physical Qubits** | 5 | 5 | 9 | +4 Ancilla routing nodes |
-| **Coupling Edges** | - | 4 edges | 12 edges | $3.0\times$ edge density |
-| **Transpiled Depth** | 17 | 77 | 63 | **18.18% depth reduction** |
-| **Transpiled CX Count**| 0 | 50 | 32 | **36.00% CX gate reduction** |
-| **Estimated SWAP Count**| 0 | 16.67 | 10.67 | **Saved 6 SWAP operations** |
-| **Hellinger Fidelity** | 1.0000 | 0.9998 | 0.9999 | Target state preserved |
-| **Total Variation Dist**| 0.0000 | 0.0112 | 0.0088 | **21.4% TVD reduction** |
+*Platform Comparison Summary*:
+- **Platform A Mean**: 1.414 +/- 0.054 ms (p95: 2.030 ms)
+- **Platform B Mean**: 1.389 +/- 0.134 ms (p95: 2.859 ms)
+- *Observed Latency Delta*: Mean execution latency exhibits statistical parity (-1.8%), while Platform B single-core affinity exhibits increased tail latency variance (p95: 2.859 ms vs 2.030 ms) due to localized interrupt contention on Core 0.
+
+### 3. Quantum Architecture Routing Comparison (Qiskit Aer, 4096 Shots)
+| Benchmark Circuit | Processor | Physical Qubits | Coupling Edges | Logical Basis CX | Transpiled CX | CX Routing Overhead | Routing SWAPs | Transpiled Depth | Hellinger Fidelity | Shot-Noise Floor | Topology Discrimination |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|---|
+| **QFT_5** | Processor A | 4 | 4 | 26 | 50 | 24 | 8 | 77 | 0.9998 | 0.9956 | Yes (Routing depth/CX) |
+| **QFT_5** | Processor B | 9 | 12 | 26 | 32 | 6 | 2 | 63 | 0.9999 | 0.9956 | Yes (Routing depth/CX) |
+| **GHZ_5** | Processor A | 4 | 4 | 4 | 4 | 0 | 0 | 8 | 0.9397 | 0.9996 | No (Linear nearest-neighbor) |
+| **GHZ_5** | Processor B | 9 | 12 | 4 | 4 | 0 | 0 | 8 | 0.9397 | 0.9996 | No (Linear nearest-neighbor) |
+| **CROSS_CONN_5** | Processor A | 4 | 4 | 12 | 18 | 6 | 2 | 22 | 0.9999 | 0.9956 | Yes (Alternative routing paths) |
+| **CROSS_CONN_5** | Processor B | 9 | 12 | 12 | 12 | 0 | 0 | 16 | 0.9998 | 0.9956 | Yes (Alternative routing paths) |
 
 ---
 

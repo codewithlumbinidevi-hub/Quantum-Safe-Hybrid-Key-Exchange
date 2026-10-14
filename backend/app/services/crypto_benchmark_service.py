@@ -296,9 +296,16 @@ class CryptoBenchmarkService:
             # -------------------------------------------------------------
             trial_records: List[Dict[str, Any]] = []
 
+            active_affinity = current_process.cpu_affinity() if hasattr(current_process, "cpu_affinity") else []
+            affinity_str = str(active_affinity)
+
             for i in range(1, iterations + 1):
                 t_trial_start = time.perf_counter_ns()
-                record: Dict[str, Any] = {"trial": i, "platform": platform_profile}
+                record: Dict[str, Any] = {
+                    "trial": i,
+                    "platform": platform_profile,
+                    "cpu_affinity_mask": affinity_str,
+                }
 
                 ecdh_match = True
                 mlkem_match = True
@@ -406,6 +413,9 @@ class CryptoBenchmarkService:
                 "p50_ms": float(np.round(np.percentile(vals, 50), 4)),
                 "p95_ms": float(np.round(np.percentile(vals, 95), 4)),
                 "p99_ms": float(np.round(np.percentile(vals, 99), 4)),
+                "ci95_margin_ms": float(np.round(1.96 * (np.std(vals, ddof=1) / np.sqrt(len(vals))), 4)) if len(vals) > 1 else 0.0,
+                "ci95_low_ms": float(np.round(np.mean(vals) - (1.96 * (np.std(vals, ddof=1) / np.sqrt(len(vals)))), 4)) if len(vals) > 1 else float(np.round(np.mean(vals), 4)),
+                "ci95_high_ms": float(np.round(np.mean(vals) + (1.96 * (np.std(vals, ddof=1) / np.sqrt(len(vals)))), 4)) if len(vals) > 1 else float(np.round(np.mean(vals), 4)),
                 "sample_count": int(len(vals)),
             }
 

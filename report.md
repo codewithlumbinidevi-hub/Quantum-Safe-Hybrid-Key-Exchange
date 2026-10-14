@@ -89,43 +89,48 @@ All sizes strictly adhere to SEC 1 v2.0 (uncompressed P-256) and NIST FIPS 203 S
 
 ## 3. Empirical Latency & Performance Benchmarks
 
-Benchmarks were performed with $N=50$ measured trials (+5 discarded warmup iterations) per platform profile on an AMD64 host (16 logical cores) running Python 3.10.11 and `cryptography 50.0.2`.
+Benchmarks were performed with $N=200$ measured trials (+5 discarded warmup iterations) per platform profile on an AMD64 host (16 logical cores) running Python 3.10.11 and `cryptography 50.0.2`.
 
-### 3.1 Primitive-Level Execution Latency (Platform A Standard CPU)
+### 3.1 Primitive-Level Execution Latency (Platform A vs Platform B, N=200 Trials)
 
-| Sub-Operation | Mean Latency (ms) | Std Dev (ms) | Median / p50 (ms) | p95 (ms) | Min (ms) | Max (ms) |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **ECDH KeyGen** | 0.103 | 0.032 | 0.109 | 0.138 | 0.057 | 0.181 |
-| **ML-KEM KeyGen** | 0.495 | 0.135 | 0.537 | 0.676 | 0.332 | 0.896 |
-| **ECDH Shared Secret** | 0.196 | 0.045 | 0.217 | 0.243 | 0.140 | 0.347 |
-| **ML-KEM Encapsulation** | 0.202 | 0.075 | 0.221 | 0.317 | 0.124 | 0.455 |
-| **ML-KEM Decapsulation** | 0.161 | 0.049 | 0.174 | 0.198 | 0.115 | 0.411 |
-| **HKDF-SHA256 Derivation**| 0.096 | 0.044 | 0.099 | 0.131 | 0.049 | 0.333 |
-| **Total Hybrid Handshake** | **1.258** | **0.376** | **1.350** | **2.007** | **0.950** | **2.302** |
+| Operation / Primitive | Platform A Mean +/- 95% CI (ms) | Platform A p95 (ms) | Platform B Mean +/- 95% CI (ms) | Platform B p95 (ms) | Observed Delta (ms) |
+|---|:---:|:---:|:---:|:---:|:---:|
+| ECDH KeyGen (secp256r1) | 0.089 +/- 0.005 | 0.142 | 0.087 +/- 0.017 | 0.139 | -0.002 |
+| ML-KEM KeyGen (FIPS 203) | 0.438 +/- 0.016 | 0.613 | 0.405 +/- 0.036 | 0.613 | -0.033 |
+| ECDH Shared Secret (secp256r1) | 0.182 +/- 0.007 | 0.255 | 0.173 +/- 0.019 | 0.238 | -0.010 |
+| ML-KEM Encapsulation (FIPS 203) | 0.168 +/- 0.007 | 0.248 | 0.154 +/- 0.018 | 0.242 | -0.013 |
+| ML-KEM Decapsulation (FIPS 203) | 0.147 +/- 0.006 | 0.211 | 0.154 +/- 0.045 | 0.198 | +0.006 |
+| Hybrid HKDF-SHA256 Derivation | 0.072 +/- 0.006 | 0.115 | 0.110 +/- 0.071 | 0.112 | +0.039 |
+| **Total Hybrid Handshake Latency** | 1.414 +/- 0.054 | 2.030 | 1.389 +/- 0.134 | 2.859 | -0.025 |
 
 ### 3.2 Platform A vs Platform B Comparative Evaluation
 
-| Performance Metric | Platform A (Standard Multi-Core) | Platform B (Constrained Core 0 Affinity) | Relative Overhead (%) |
-|---|:---:|:---:|:---:|
-| **Mean Handshake Latency** | **1.258 ms** | **1.675 ms** | **+33.1%** |
-| **Median (p50) Latency** | 1.350 ms | 1.770 ms | +31.1% |
-| **95th Percentile (p95)** | 2.007 ms | 2.106 ms | +4.9% |
-| **99th Percentile (p99)** | 2.238 ms | 2.302 ms | +2.9% |
-| **Max Latency** | 2.302 ms | 2.450 ms | +6.4% |
-| **Peak Heap Allocation** | 12.80 KB | 13.12 KB | +2.5% |
-| **Process RSS Delta** | 0.12 MB | 0.18 MB | Negligible |
-| **Agreement Success Rate** | **100.0%** (50/50 trials) | **100.0%** (50/50 trials) | 0.0% failure |
+| Performance Metric | Platform A (Standard Multi-Core) | Platform B (Constrained Core 0 Affinity) | Comparison Note |
+|---|:---:|:---:|---|
+| **Mean Handshake Latency** | **1.414 +/- 0.054 ms** | **1.389 +/- 0.134 ms** | Mean parity within 95% CI (-1.8%) |
+| **Median (p50) Latency** | 1.200 ms | 1.078 ms | Platform B median: 1.078 ms |
+| **95th Percentile (p95)** | 2.030 ms | 2.859 ms | Platform B shows higher tail variance (+0.829 ms) |
+| **Standard Deviation** | 0.387 ms | 0.961 ms | Higher variance under single-core OS scheduling |
+| **CPU Affinity Mask** | `[0, 1, ..., 15]` (All logical cores) | `[0]` (Strictly Core 0) | Enforced via `psutil.Process().cpu_affinity` |
+| **Peak Heap Allocation** | 12.80 KB | 13.12 KB | Negligible heap overhead under tracemalloc |
+| **Agreement Success Rate** | **100.0%** (200/200 trials) | **100.0%** (200/200 trials) | Zero failures across 400 total handshakes |
 
-#### Performance Insights:
-1. **Computational Dominance**: ML-KEM-768 operations (keygen, encap, decap) account for $\approx 68.2\%$ of overall handshake compute time, with ML-KEM key generation being the single most computationally intensive operation ($0.495$ ms).
-2. **Platform Affinity Impact**: Restricting the process to a single CPU core via OS CPU affinity (`psutil.Process().cpu_affinity([0])`) increases mean handshake latency by **33.1%** due to CPU scheduling contention between background OS routines, GIL thread preemption, and the single execution pipeline.
-3. **Memory Footprint**: Peak heap allocations measured via `tracemalloc` remain under $15$ KB across all iterations, demonstrating that hybrid post-quantum key exchange introduces virtually zero memory pressure on host systems.
+#### Performance Insights & Scientific Interpretation:
+1. **Computational Dominance**: ML-KEM-768 operations (keygen, encap, decap) account for the majority of cryptographic compute time, with ML-KEM key generation being the single most computationally intensive sub-operation (~0.40 ms).
+2. **Platform Affinity Impact (Hypothesis vs Observation)**: 
+   - *Observation*: Across $N=200$ independent trials, mean handshake latencies on Platform A (1.414 +/- 0.054 ms) and Platform B (1.389 +/- 0.134 ms) exhibit statistical parity within the 95% confidence interval (-1.8% difference).
+   - *Tail Latency Variance*: Platform B exhibits significantly higher tail latency and variance (p95 = 2.859 ms vs 2.030 ms; std = 0.961 ms vs 0.387 ms).
+   - *Hypothesized Mechanism*: When execution is strictly pinned to logical Core 0 (`[0]`), the process cannot be dynamically migrated by the operating system to idle cores during periodic OS interrupts or background thread preemption, producing occasional high-latency outlier trials (e.g. trial 4 reaching 8.07 ms) without altering the median execution speed.
+3. **Memory Footprint**: Peak heap allocations measured via `tracemalloc` remain under 15 KB across all iterations, demonstrating that hybrid post-quantum key exchange introduces minimal memory pressure.
 
 ---
 
 ## 4. Universal Processor A/B Quantum Architecture Simulation
 
-The Universal Processor A/B Framework benchmarks how quantum topologies influence quantum circuit compilation, routing overhead, and execution fidelity.
+The Universal Processor A/B Framework benchmarks how quantum topologies influence quantum circuit compilation, routing overhead, and execution fidelity across 3 standard test circuits:
+- **QFT-5**: All-to-all connectivity requirement. Exercises global routing and gate synthesis.
+- **GHZ-5**: Linear nearest-neighbor entanglement chain.
+- **CrossConn-5**: Deliberately non-adjacent interactions between qubit pairs `(0,2), (1,3), (0,4), (1,4), (2,4)`.
 
 ### 4.1 Topology Graph Definitions
 - **Processor A (Baseline Linear Chain)**:
@@ -146,20 +151,27 @@ The Universal Processor A/B Framework benchmarks how quantum topologies influenc
   - Readout error: $p_{ro} = 0.01$
 - Shots: 4,096
 
-### 4.3 Empirical Transpilation & Simulation Results (QFT-5 Benchmark)
+### 4.3 Multi-Circuit Transpilation & Simulation Results
 
-| Architectural Metric | Logical Circuit | Processor A (5Q Linear) | Processor B (9Q Heavy-Hex) | Processor B Advantage |
-|---|:---:|:---:|:---:|:---:|
-| **Physical Qubit Count** | 5 | 5 | 9 | +4 ancilla routing options |
-| **Coupling Edges** | - | 4 | 12 | $3.0\times$ edge density |
-| **Circuit Depth** | 17 | 77 | 63 | **18.18% depth reduction** |
-| **2-Qubit CX Count** | 0 (Native QFT) | 50 | 32 | **36.00% CX gate reduction** |
-| **Estimated SWAP Count** | 0 | 16.67 | 10.67 | **36.00% SWAP reduction** |
-| **Hellinger Fidelity** | 1.0000 | 0.9998 | 0.9999 | Higher state fidelity |
-| **Total Variation Dist (TVD)** | 0.0000 | 0.0112 | 0.0088 | **21.4% TVD reduction** |
+| Benchmark Circuit | Processor | Physical Qubits | Coupling Edges | Logical Basis CX | Transpiled CX | CX Routing Overhead | Routing SWAPs | Transpiled Depth | Hellinger Fidelity | Shot-Noise Floor | Topology Discrimination |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|---|
+| **QFT_5** | Processor A | 4 | 4 | 26 | 50 | 24 | 8 | 77 | 0.9998 | 0.9956 | Yes (Routing depth/CX) |
+| **QFT_5** | Processor B | 9 | 12 | 26 | 32 | 6 | 2 | 63 | 0.9999 | 0.9956 | Yes (Routing depth/CX) |
+| **GHZ_5** | Processor A | 4 | 4 | 4 | 4 | 0 | 0 | 8 | 0.9397 | 0.9996 | No (Linear nearest-neighbor) |
+| **GHZ_5** | Processor B | 9 | 12 | 4 | 4 | 0 | 0 | 8 | 0.9397 | 0.9996 | No (Linear nearest-neighbor) |
+| **CROSS_CONN_5** | Processor A | 4 | 4 | 12 | 18 | 6 | 2 | 22 | 0.9999 | 0.9956 | Yes (Alternative routing paths) |
+| **CROSS_CONN_5** | Processor B | 9 | 12 | 12 | 12 | 0 | 0 | 16 | 0.9998 | 0.9956 | Yes (Alternative routing paths) |
 
-#### Architectural Findings:
-Processor B's 9-qubit heavy-hex coupling topology with 12 bidirectional edges significantly reduces routing overhead. Because non-adjacent logical qubits have multiple alternative graph traversal paths through central routing nodes (e.g., node 6 with degree 4), the Qiskit Sabre routing algorithm eliminates **18 CX gates** (equivalent to 6 SWAP operations) compared to the linear chain of Processor A, directly improving noisy circuit fidelity.
+#### Architectural Findings & Topology Discrimination Analysis:
+1. **CrossConn-5 (Topology Discriminator)**:
+   - On Processor A (5Q linear chain), non-adjacent interactions cannot be mapped natively, requiring **2 routing SWAP operations** and adding **6 additional CX gates** (18 CX vs 12 logical basis CX).
+   - On Processor B (9Q heavy-hex), the 12-edge graph with central high-degree routing nodes allows the Qiskit Sabre transpiler to embed the circuit with **0 routing SWAPs** and **12 CX gates** (0 CX overhead).
+2. **QFT-5 (Routing Gate Overhead vs Insensitive Uniform Fidelity)**:
+   - On Processor A, global all-to-all routing requires **8 routing SWAPs** (50 CX vs 26 logical basis CX; depth 77).
+   - On Processor B, routing requires only **2 routing SWAPs** (32 CX vs 26 logical basis CX; depth 63), achieving a **36.0% CX reduction** and **18.2% depth reduction**.
+   - *Fidelity Note*: Because ideal QFT on $|00000angle$ produces a uniform superposition over all 32 basis states, depolarizing noise drives state mixtures towards the exact same uniform distribution. Consequently, Hellinger fidelity remains ~0.9998 on both processors, falling directly within the shot-noise floor (0.9956). Thus, QFT-5 discriminates routing compilation overhead but **does not** discriminate fidelity under depolarizing noise.
+3. **GHZ-5 (Identical Nearest-Neighbor Mapping)**:
+   - Because GHZ-5 consists strictly of nearest-neighbor CX operations along a linear chain, both Processor A and Processor B execute with **0 routing SWAPs** and identical gate counts (4 CX, depth 8), resulting in identical noisy fidelity (0.9397) on both processors.
 
 ---
 

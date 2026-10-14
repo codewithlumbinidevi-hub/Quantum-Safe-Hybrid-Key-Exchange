@@ -39,7 +39,37 @@ def transpile_to_processor(
     logical_cx = logical_ops.get("cx", 0)
     logical_total_gates = sum(logical_ops.values())
 
-    # Perform transpilation
+    # 1. Unconstrained logical basis metrics (decomposed to basis without coupling map)
+    unconstrained_qc = transpile(
+        circuit,
+        basis_gates=basis_gates,
+        optimization_level=optimization_level,
+        seed_transpiler=seed_transpiler,
+    )
+    logical_basis_cx = unconstrained_qc.count_ops().get("cx", 0)
+    logical_basis_depth = unconstrained_qc.depth()
+
+    # 2. Count real routing-inserted SWAP operations
+    basis_with_swap = list(basis_gates) + (["swap"] if "swap" not in basis_gates else [])
+    unconstrained_with_swap = transpile(
+        circuit,
+        basis_gates=basis_with_swap,
+        optimization_level=optimization_level,
+        seed_transpiler=seed_transpiler,
+    )
+    logical_swaps = unconstrained_with_swap.count_ops().get("swap", 0)
+
+    routed_with_swap = transpile(
+        circuit,
+        coupling_map=coupling_map,
+        basis_gates=basis_with_swap,
+        optimization_level=optimization_level,
+        seed_transpiler=seed_transpiler,
+    )
+    total_swaps = routed_with_swap.count_ops().get("swap", 0)
+    routing_swaps = max(0, total_swaps - logical_swaps)
+
+    # 3. Transpile strictly to physical processor basis ['rz', 'sx', 'x', 'cx']
     transpiled_qc = transpile(
         circuit,
         coupling_map=coupling_map,
@@ -55,18 +85,21 @@ def transpile_to_processor(
     transpiled_total_gates = sum(transpiled_ops.values())
 
     # Routing overhead
-    routing_metrics = calculate_routing_overhead(logical_cx, transpiled_cx)
+    routing_metrics = calculate_routing_overhead(logical_basis_cx, transpiled_cx, routing_swaps)
 
     metrics = {
         "processor_name": processor.name,
         "processor_num_qubits": processor.num_qubits,
         "logical_depth": logical_depth,
+        "logical_basis_depth": logical_basis_depth,
         "transpiled_depth": transpiled_depth,
-        "depth_expansion_ratio": round(transpiled_depth / max(1, logical_depth), 2),
+        "depth_expansion_ratio": round(transpiled_depth / max(1, logical_basis_depth), 2),
         "logical_cx_count": logical_cx,
+        "logical_basis_cx_count": logical_basis_cx,
         "transpiled_cx_count": transpiled_cx,
         "cx_overhead": routing_metrics["cx_overhead"],
-        "swap_gate_estimate": routing_metrics["swap_gate_estimate"],
+        "routing_swaps": routing_swaps,
+        "swap_gate_estimate": routing_swaps,  # Kept as integer for schema compatibility
         "cx_overhead_ratio": routing_metrics["cx_overhead_ratio"],
         "logical_total_gates": logical_total_gates,
         "transpiled_total_gates": transpiled_total_gates,

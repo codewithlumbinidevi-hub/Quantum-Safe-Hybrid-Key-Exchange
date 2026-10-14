@@ -1,6 +1,6 @@
 {
-  "run_id": "DUAL-56851F89-C99E71F1",
-  "timestamp": "2026-10-14T15:54:38.887431Z",
+  "run_id": "DUAL-535D86A8-B2339547",
+  "timestamp": "2026-10-14T16:19:53.134722Z",
   "platform_profile": "both",
   "benchmark_mode": "hybrid",
   "iterations": 2,
@@ -65,8 +65,8 @@
   },
   "verification_status": "PASS",
   "dual_run": {
-    "platform_a_run_id": "RUN-56851F89",
-    "platform_b_run_id": "RUN-C99E71F1",
-    "relative_latency_overhead_percent": -38.46
+    "platform_a_run_id": "RUN-535D86A8",
+    "platform_b_run_id": "RUN-B2339547",
+    "relative_latency_overhead_percent": -46.13
   }
 }

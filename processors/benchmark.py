@@ -97,6 +97,12 @@ class ProcessorBenchmarkRunner:
         fidelity_b = compute_hellinger_fidelity(counts_b_ideal, counts_b_noisy)
         tvd_b = compute_tvd(counts_b_ideal, counts_b_noisy)
 
+        # Shot-noise floor calculation (ideal vs independent ideal run)
+        job_a_ideal2 = sim_ideal.run(transpiled_a, shots=shots, seed_simulator=seed + 999)
+        counts_a_ideal2 = job_a_ideal2.result().get_counts()
+        shot_noise_fidelity_floor = compute_hellinger_fidelity(counts_a_ideal, counts_a_ideal2)
+        shot_noise_tvd_floor = compute_tvd(counts_a_ideal, counts_a_ideal2)
+
         # Top 5 states for visualization
         top_states_a = dict(sorted(counts_a_noisy.items(), key=lambda item: item[1], reverse=True)[:5])
         top_states_b = dict(sorted(counts_b_noisy.items(), key=lambda item: item[1], reverse=True)[:5])
@@ -111,7 +117,9 @@ class ProcessorBenchmarkRunner:
                 "description": circuit_meta.get("description", ""),
                 "qubit_count": 5,
                 "logical_depth": circuit.depth(),
+                "logical_basis_depth": metrics_a.get("logical_basis_depth", circuit.depth()),
                 "logical_cx_count": metrics_a["logical_cx_count"],
+                "logical_basis_cx_count": metrics_a.get("logical_basis_cx_count", metrics_a["logical_cx_count"]),
             },
             "transpiler_settings": {
                 "optimization_level": optimization_level,
@@ -119,6 +127,12 @@ class ProcessorBenchmarkRunner:
                 "shots": shots,
             },
             "noise_settings": get_noise_model_metadata(),
+            "shot_noise_floor": {
+                "shots": shots,
+                "hellinger_fidelity_floor": shot_noise_fidelity_floor,
+                "tvd_floor": shot_noise_tvd_floor,
+                "note": "Computed between two independent ideal simulations with identical shot count to establish statistical threshold."
+            },
             "processor_a": {
                 "topology": graph_a,
                 "metrics": metrics_a,
@@ -142,6 +156,7 @@ class ProcessorBenchmarkRunner:
                 ),
                 "swap_overhead_diff": round(metrics_a["swap_gate_estimate"] - metrics_b["swap_gate_estimate"], 2),
                 "fidelity_difference": round(fidelity_b - fidelity_a, 4),
+                "within_shot_noise_floor": bool(abs(fidelity_b - fidelity_a) <= (1.0 - shot_noise_fidelity_floor) * 1.5),
             },
             "scientific_disclaimer": (
                 "IMPORTANT SCIENTIFIC DISTINCTION: Classical ECDH and Post-Quantum ML-KEM-768 "
@@ -164,13 +179,17 @@ class ProcessorBenchmarkRunner:
                 "topology": "Linear Chain (5Q)",
                 "circuit_id": circuit_id,
                 "logical_depth": circuit.depth(),
+                "logical_basis_cx": metrics_a.get("logical_basis_cx_count", metrics_a["logical_cx_count"]),
                 "transpiled_depth": metrics_a["transpiled_depth"],
                 "logical_cx": metrics_a["logical_cx_count"],
                 "transpiled_cx": metrics_a["transpiled_cx_count"],
                 "cx_overhead": metrics_a["cx_overhead"],
+                "routing_swaps": metrics_a.get("routing_swaps", 0),
                 "swap_estimate": metrics_a["swap_gate_estimate"],
                 "hellinger_fidelity": fidelity_a,
                 "tvd": tvd_a,
+                "shot_noise_fidelity_floor": shot_noise_fidelity_floor,
+                "shot_noise_tvd_floor": shot_noise_tvd_floor,
                 "shots": shots,
                 "edges_count": graph_a["undirected_edges_count"],
                 "timestamp": timestamp_str,
@@ -180,13 +199,17 @@ class ProcessorBenchmarkRunner:
                 "topology": "Sparse Heavy-Hex (9Q)",
                 "circuit_id": circuit_id,
                 "logical_depth": circuit.depth(),
+                "logical_basis_cx": metrics_b.get("logical_basis_cx_count", metrics_b["logical_cx_count"]),
                 "transpiled_depth": metrics_b["transpiled_depth"],
                 "logical_cx": metrics_b["logical_cx_count"],
                 "transpiled_cx": metrics_b["transpiled_cx_count"],
                 "cx_overhead": metrics_b["cx_overhead"],
+                "routing_swaps": metrics_b.get("routing_swaps", 0),
                 "swap_estimate": metrics_b["swap_gate_estimate"],
                 "hellinger_fidelity": fidelity_b,
                 "tvd": tvd_b,
+                "shot_noise_fidelity_floor": shot_noise_fidelity_floor,
+                "shot_noise_tvd_floor": shot_noise_tvd_floor,
                 "shots": shots,
                 "edges_count": graph_b["undirected_edges_count"],
                 "timestamp": timestamp_str,
@@ -203,7 +226,100 @@ class ProcessorBenchmarkRunner:
             root_results_dir = Path(__file__).resolve().parent.parent / "results"
             df.to_csv(root_results_dir / "processor_ab_results.csv", index=False)
 
+            data_proc_dir = Path(__file__).resolve().parent.parent / "data" / "processed"
+            data_proc_dir.mkdir(parents=True, exist_ok=True)
+            df.to_csv(data_proc_dir / "processor_ab_results.csv", index=False)
+
             result["csv_file"] = str(csv_path)
 
         cls._latest_result = result
         return result
+
+    @classmethod
+    def run_all_circuits_benchmark(
+        cls,
+        shots: int = 4096,
+        optimization_level: int = 1,
+        seed: int = 42,
+        save_csv: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Execute side-by-side benchmark across ALL standard circuits (QFT-5, GHZ-5, Cross-Conn-5)
+        and export comprehensive comparative CSV.
+        """
+        all_rows = []
+        circuit_results = {}
+        for c_id in ["qft_5", "ghz_5", "cross_conn_5"]:
+            res = cls.run_ab_benchmark(
+                circuit_id=c_id,
+                shots=shots,
+                optimization_level=optimization_level,
+                seed=seed,
+                save_csv=False
+            )
+            circuit_results[c_id] = res
+            
+            # Read metrics
+            ma = res["processor_a"]["metrics"]
+            mb = res["processor_b"]["metrics"]
+            ga = res["processor_a"]["topology"]
+            gb = res["processor_b"]["topology"]
+            sn = res["shot_noise_floor"]
+            ts = res["timestamp"]
+            
+            discriminates = "Yes (Alternative routing paths)" if c_id == "cross_conn_5" else ("Yes (Routing depth/CX)" if c_id == "qft_5" else "No (Linear nearest-neighbor)")
+            
+            all_rows.append({
+                "processor": "Processor A",
+                "topology": "Linear Chain (5Q)",
+                "circuit_id": c_id,
+                "logical_depth": res["circuit"]["logical_depth"],
+                "logical_basis_cx": ma.get("logical_basis_cx_count", ma["logical_cx_count"]),
+                "transpiled_depth": ma["transpiled_depth"],
+                "transpiled_cx": ma["transpiled_cx_count"],
+                "cx_overhead": ma["cx_overhead"],
+                "routing_swaps": ma.get("routing_swaps", 0),
+                "swap_estimate": ma["swap_gate_estimate"],
+                "hellinger_fidelity": res["processor_a"]["hellinger_fidelity"],
+                "tvd": res["processor_a"]["tvd"],
+                "shot_noise_fidelity_floor": sn["hellinger_fidelity_floor"],
+                "shot_noise_tvd_floor": sn["tvd_floor"],
+                "discriminates_topology": discriminates,
+                "shots": shots,
+                "edges_count": ga["undirected_edges_count"],
+                "timestamp": ts,
+            })
+            all_rows.append({
+                "processor": "Processor B",
+                "topology": "Sparse Heavy-Hex (9Q)",
+                "circuit_id": c_id,
+                "logical_depth": res["circuit"]["logical_depth"],
+                "logical_basis_cx": mb.get("logical_basis_cx_count", mb["logical_cx_count"]),
+                "transpiled_depth": mb["transpiled_depth"],
+                "transpiled_cx": mb["transpiled_cx_count"],
+                "cx_overhead": mb["cx_overhead"],
+                "routing_swaps": mb.get("routing_swaps", 0),
+                "swap_estimate": mb["swap_gate_estimate"],
+                "hellinger_fidelity": res["processor_b"]["hellinger_fidelity"],
+                "tvd": res["processor_b"]["tvd"],
+                "shot_noise_fidelity_floor": sn["hellinger_fidelity_floor"],
+                "shot_noise_tvd_floor": sn["tvd_floor"],
+                "discriminates_topology": discriminates,
+                "shots": shots,
+                "edges_count": gb["undirected_edges_count"],
+                "timestamp": ts,
+            })
+
+        if save_csv:
+            df = pd.DataFrame(all_rows)
+            for target_dir in [
+                Path(__file__).resolve().parent.parent / "results" / "processors",
+                Path(__file__).resolve().parent.parent / "results" / "tables",
+                Path(__file__).resolve().parent.parent / "results",
+                Path(__file__).resolve().parent.parent / "data" / "processed",
+            ]:
+                target_dir.mkdir(parents=True, exist_ok=True)
+                df.to_csv(target_dir / "processor_ab_results.csv", index=False)
+
+        cls._latest_result = circuit_results["qft_5"]
+        return {"circuits": circuit_results, "summary_df": all_rows}

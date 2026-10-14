@@ -75,14 +75,14 @@ print(f"Total Wire Payload: {exchange_result['payload_sizes']['total_exchange_pa
 
     # Cell 3: Section 2 - Platform A vs Platform B Benchmark
     cells.append(nbf.v4.new_markdown_cell("""## 2. Platform A vs Platform B Empirical Benchmark
-We run 50 measured trials (+5 warmup) across both CPU execution profiles:
+We run 200 measured trials (+5 warmup) across both CPU execution profiles:
 - **Platform A**: Standard multi-core workstation CPU with dynamic OS scheduling.
 - **Platform B**: Single-core CPU affinity (Process locked to Core 0) with serialized execution.
 """))
 
-    cells.append(nbf.v4.new_code_cell("""print("Executing dual-platform benchmark (50 trials per profile)...")
+    cells.append(nbf.v4.new_code_cell("""print("Executing dual-platform benchmark (200 trials per profile)...")
 crypto_results = problem.run_crypto_benchmark(
-    iterations=50,
+    iterations=200,
     platform_profile="both",
     warmup_iterations=5,
     benchmark_mode="hybrid",
@@ -94,21 +94,27 @@ res_b = crypto_results["platform_b_result"]
 
 mean_a = res_a["statistics"]["total_handshake_ms"]["mean_ms"]
 p95_a = res_a["statistics"]["total_handshake_ms"]["p95_ms"]
+ci_a = res_a["statistics"]["total_handshake_ms"].get("ci95_margin_ms", 0.0)
+
 mean_b = res_b["statistics"]["total_handshake_ms"]["mean_ms"]
 p95_b = res_b["statistics"]["total_handshake_ms"]["p95_ms"]
+ci_b = res_b["statistics"]["total_handshake_ms"].get("ci95_margin_ms", 0.0)
 
-print(f"Platform A Mean Handshake: {mean_a:.3f} ms (p95: {p95_a:.3f} ms)")
-print(f"Platform B Mean Handshake: {mean_b:.3f} ms (p95: {p95_b:.3f} ms)")
+print(f"Platform A Mean Handshake: {mean_a:.3f} +/- {ci_a:.3f} ms (p95: {p95_a:.3f} ms)")
+print(f"Platform B Mean Handshake: {mean_b:.3f} +/- {ci_b:.3f} ms (p95: {p95_b:.3f} ms)")
 overhead_pct = crypto_results["comparison_summary"]["relative_latency_overhead_percent"]
-print(f"Platform B Relative Latency Overhead: {overhead_pct:.1f}%")
+print(f"Platform B Observed Latency Overhead: {overhead_pct:.1f}%")
 """))
 
     # Cell 4: Section 3 - Universal Processor A vs B Quantum Benchmark
     cells.append(nbf.v4.new_markdown_cell("""## 3. Universal Processor A/B Quantum Architecture Simulation
 We evaluate circuit transpilation overhead, routing constraints, and noisy simulation fidelity in Qiskit Aer between:
-- **Processor A**: 5 qubits, baseline linear chain `[(0,1),(1,2),(2,3),(3,4)]`
-- **Processor B**: 9 qubits, reference sparse heavy-hex `[(0,1),(1,2),(1,6),(2,3),(2,6),(2,5),(3,4),(4,5),(5,6),(6,7),(6,8),(8,0)]`
-Under identical synthetic noise (1q depol 0.001, 2q CX 0.005, readout error 0.01) and baseline transpiler settings (`opt_level=1`, `seed=42`, `shots=4096`).
+- **Processor A**: 5 qubits, baseline linear chain `[(0,1),(1,2),(2,3),(3,4)]` (4 edges)
+- **Processor B**: 9 qubits, reference sparse heavy-hex `[(0,1),(1,2),(1,6),(2,3),(2,6),(2,5),(3,4),(4,5),(5,6),(6,7),(6,8),(8,0)]` (12 edges)
+Under identical synthetic noise (1q depol 0.001, 2q CX 0.005, readout error 0.01) across 3 benchmark circuits:
+- **QFT-5**: All-to-all connectivity requirement. Maximum routing stress.
+- **GHZ-5**: Linear nearest-neighbor entanglement chain.
+- **CrossConn-5**: Non-adjacent interaction stress.
 """))
 
     cells.append(nbf.v4.new_code_cell("""proc_benchmark = routing.run_processor_ab_benchmark(
@@ -119,20 +125,29 @@ Under identical synthetic noise (1q depol 0.001, 2q CX 0.005, readout error 0.01
     save_csv=True
 )
 
+all_proc_benchmarks = routing.run_all_processor_benchmarks(
+    shots=4096,
+    optimization_level=1,
+    seed=42,
+    save_csv=True
+)
+
 depth_a = proc_benchmark["processor_a"]["metrics"]["transpiled_depth"]
 cx_a = proc_benchmark["processor_a"]["metrics"]["transpiled_cx_count"]
-swap_a = proc_benchmark["processor_a"]["metrics"]["swap_gate_estimate"]
+swap_a = int(proc_benchmark["processor_a"]["metrics"]["swap_gate_estimate"])
 fid_a = proc_benchmark["processor_a"]["hellinger_fidelity"]
 
 depth_b = proc_benchmark["processor_b"]["metrics"]["transpiled_depth"]
 cx_b = proc_benchmark["processor_b"]["metrics"]["transpiled_cx_count"]
-swap_b = proc_benchmark["processor_b"]["metrics"]["swap_gate_estimate"]
+swap_b = int(proc_benchmark["processor_b"]["metrics"]["swap_gate_estimate"])
 fid_b = proc_benchmark["processor_b"]["hellinger_fidelity"]
+sn_fid = proc_benchmark["shot_noise_floor"]["hellinger_fidelity_floor"]
 
 print("=== QUANTUM ARCHITECTURAL BENCHMARK RESULTS (QFT-5) ===")
-print("Logical Depth:", proc_benchmark["circuit"]["logical_depth"])
-print(f"Processor A (5Q Linear) Depth: {depth_a} | CX: {cx_a} | SWAP est: {swap_a} | Fidelity: {fid_a}")
-print(f"Processor B (9Q Heavy-Hex) Depth: {depth_b} | CX: {cx_b} | SWAP est: {swap_b} | Fidelity: {fid_b}")
+print("Logical Depth:", proc_benchmark["circuit"]["logical_depth"], "| Logical Basis CX:", proc_benchmark["circuit"]["logical_basis_cx_count"])
+print(f"Processor A (5Q Linear)    Depth: {depth_a} | CX: {cx_a} | Routing SWAPs: {swap_a} | Fidelity: {fid_a}")
+print(f"Processor B (9Q Heavy-Hex) Depth: {depth_b} | CX: {cx_b} | Routing SWAPs: {swap_b} | Fidelity: {fid_b}")
+print(f"Shot-Noise Fidelity Threshold (Ideal vs Ideal): {sn_fid}")
 print(f"CX Reduction on Processor B: {proc_benchmark['comparison_summary']['cx_reduction_b_vs_a_percent']}%")
 print(f"Depth Reduction on Processor B: {proc_benchmark['comparison_summary']['depth_reduction_b_vs_a_percent']}%")
 """))

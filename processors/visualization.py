@@ -38,9 +38,9 @@ def generate_processor_comparison_figure(
     circuit_name = benchmark_result["circuit"]["name"]
 
     # Data for plotting
-    categories = ["Transpiled Depth", "Transpiled CX", "Est. SWAP Overhead"]
-    vals_a = [metrics_a["transpiled_depth"], metrics_a["transpiled_cx_count"], metrics_a["swap_gate_estimate"]]
-    vals_b = [metrics_b["transpiled_depth"], metrics_b["transpiled_cx_count"], metrics_b["swap_gate_estimate"]]
+    categories = ["Transpiled Depth", "Transpiled CX", "Routing SWAPs"]
+    vals_a = [metrics_a["transpiled_depth"], metrics_a["transpiled_cx_count"], int(metrics_a["swap_gate_estimate"])]
+    vals_b = [metrics_b["transpiled_depth"], metrics_b["transpiled_cx_count"], int(metrics_b["swap_gate_estimate"])]
 
     # Dark-themed publication style
     plt.style.use("dark_background")

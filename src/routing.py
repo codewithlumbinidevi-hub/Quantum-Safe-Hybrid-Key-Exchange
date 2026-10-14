@@ -55,3 +55,21 @@ def run_processor_ab_benchmark(
         seed=seed,
         save_csv=save_csv
     )
+
+
+def run_all_processor_benchmarks(
+    shots: int = 4096,
+    optimization_level: int = 1,
+    seed: int = 42,
+    save_csv: bool = True
+) -> Dict[str, Any]:
+    """
+    Execute comparative benchmarks across all standard test circuits (QFT-5, GHZ-5, Cross-Conn-5)
+    and export all results to results/tables/processor_ab_results.csv.
+    """
+    return ProcessorBenchmarkRunner.run_all_circuits_benchmark(
+        shots=shots,
+        optimization_level=optimization_level,
+        seed=seed,
+        save_csv=save_csv
+    )

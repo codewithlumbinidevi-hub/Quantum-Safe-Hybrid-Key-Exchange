@@ -98,3 +98,22 @@ def get_circuit_by_id(circuit_id: str = "qft_5") -> QuantumCircuit:
     if circuit_id not in CIRCUIT_REGISTRY:
         circuit_id = "qft_5"
     return CIRCUIT_REGISTRY[circuit_id]["factory"]()
+
+
+def get_exact_distribution(circuit_id: str = "qft_5", shots: int = 4096) -> Dict[str, float]:
+    """
+    Compute exact theoretical measurement probabilities scaled to shot count.
+    For QFT-5 and Cross-Conn-5 on |00000>, theoretical distribution is uniform (32 states, P=1/32).
+    For GHZ-5, theoretical distribution is 50% |00000> and 50% |11111>.
+    """
+    if circuit_id in ("qft_5", "cross_conn_5"):
+        return {format(i, '05b'): shots / 32.0 for i in range(32)}
+    elif circuit_id == "ghz_5":
+        return {"00000": shots / 2.0, "11111": shots / 2.0}
+    else:
+        # Fallback to statevector calculation
+        from qiskit.quantum_info import Statevector
+        qc = get_circuit_by_id(circuit_id).remove_final_measurements(inplace=False)
+        sv = Statevector.from_instruction(qc)
+        probs = sv.probabilities_dict()
+        return {k: v * shots for k, v in probs.items() if v > 1e-9}

@@ -12,7 +12,7 @@ from datetime import datetime
 from qiskit_aer import AerSimulator
 
 from processors.coupling_maps import load_processors, ProcessorTopology
-from processors.circuits import get_circuit_by_id, CIRCUIT_REGISTRY
+from processors.circuits import get_circuit_by_id, CIRCUIT_REGISTRY, get_exact_distribution
 from processors.noise_models import create_reference_noise_model, get_noise_model_metadata
 from processors.transpilation import transpile_to_processor
 from processors.metrics import compute_hellinger_fidelity, compute_tvd
@@ -67,6 +67,9 @@ class ProcessorBenchmarkRunner:
         noise_model = create_reference_noise_model()
         sim_noisy = AerSimulator(noise_model=noise_model)
 
+        # Theoretical exact distribution
+        exact_dist = get_exact_distribution(circuit_id, shots)
+
         # -------------------------------------------------------------
         # Simulate Processor A
         # -------------------------------------------------------------
@@ -78,9 +81,9 @@ class ProcessorBenchmarkRunner:
         job_a_noisy = sim_noisy.run(transpiled_a, shots=shots, seed_simulator=seed)
         counts_a_noisy = job_a_noisy.result().get_counts()
 
-        # Fidelity metrics A
-        fidelity_a = compute_hellinger_fidelity(counts_a_ideal, counts_a_noisy)
-        tvd_a = compute_tvd(counts_a_ideal, counts_a_noisy)
+        # Fidelity metrics A (evaluated against exact theoretical baseline)
+        fidelity_a = compute_hellinger_fidelity(counts_a_noisy, exact_dist)
+        tvd_a = compute_tvd(counts_a_noisy, exact_dist)
 
         # -------------------------------------------------------------
         # Simulate Processor B
@@ -93,15 +96,13 @@ class ProcessorBenchmarkRunner:
         job_b_noisy = sim_noisy.run(transpiled_b, shots=shots, seed_simulator=seed)
         counts_b_noisy = job_b_noisy.result().get_counts()
 
-        # Fidelity metrics B
-        fidelity_b = compute_hellinger_fidelity(counts_b_ideal, counts_b_noisy)
-        tvd_b = compute_tvd(counts_b_ideal, counts_b_noisy)
+        # Fidelity metrics B (evaluated against exact theoretical baseline)
+        fidelity_b = compute_hellinger_fidelity(counts_b_noisy, exact_dist)
+        tvd_b = compute_tvd(counts_b_noisy, exact_dist)
 
-        # Shot-noise floor calculation (ideal vs independent ideal run)
-        job_a_ideal2 = sim_ideal.run(transpiled_a, shots=shots, seed_simulator=seed + 999)
-        counts_a_ideal2 = job_a_ideal2.result().get_counts()
-        shot_noise_fidelity_floor = compute_hellinger_fidelity(counts_a_ideal, counts_a_ideal2)
-        shot_noise_tvd_floor = compute_tvd(counts_a_ideal, counts_a_ideal2)
+        # Shot-noise floor calculation (sampled ideal vs theoretical exact baseline)
+        shot_noise_fidelity_floor = compute_hellinger_fidelity(counts_a_ideal, exact_dist)
+        shot_noise_tvd_floor = compute_tvd(counts_a_ideal, exact_dist)
 
         # Top 5 states for visualization
         top_states_a = dict(sorted(counts_a_noisy.items(), key=lambda item: item[1], reverse=True)[:5])
@@ -131,7 +132,7 @@ class ProcessorBenchmarkRunner:
                 "shots": shots,
                 "hellinger_fidelity_floor": shot_noise_fidelity_floor,
                 "tvd_floor": shot_noise_tvd_floor,
-                "note": "Computed between two independent ideal simulations with identical shot count to establish statistical threshold."
+                "note": "Computed between sampled ideal simulation and exact theoretical distribution with identical shot count to establish the statistical sampling floor."
             },
             "processor_a": {
                 "topology": graph_a,

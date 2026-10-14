@@ -1,0 +1,26 @@
+{
+  "name": "q-shield-pqc",
+  "version": "1.0.0",
+  "description": "Quantum-Safe Hybrid Key Exchange and Processor Architecture Benchmark (Q-SHIELD-PQC)",
+  "private": true,
+  "scripts": {
+    "start": "run.bat",
+    "backend": "python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload",
+    "frontend": "npm --prefix frontend run dev",
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview",
+    "test": "python -m pytest backend/tests processors/tests -v"
+  },
+  "keywords": [
+    "post-quantum-cryptography",
+    "hybrid-key-exchange",
+    "ecdh",
+    "ml-kem-768",
+    "fips-203",
+    "qiskit",
+    "quantum-benchmark"
+  ],
+  "author": "Q-SHIELD-PQC Team",
+  "license": "MIT"
+}

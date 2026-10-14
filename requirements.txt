@@ -1,0 +1,26 @@
+# Core Post-Quantum & Classical Cryptography (NIST FIPS 203 ML-KEM-768 + SECP256R1 ECDH)
+cryptography==50.0.2
+
+# Quantum Architecture Simulation & Transpilation (Qiskit Fall Fest 2026 Phase 1)
+qiskit==2.2.3
+qiskit-aer==0.17.2
+networkx==3.4.2
+
+# Data Processing, Scientific Computing & Statistics
+numpy==1.26.4
+pandas==2.2.3
+matplotlib==3.9.0
+psutil==7.2.2
+
+# Backend Web API (FastAPI & Uvicorn)
+fastapi==0.141.1
+uvicorn==0.52.0
+pydantic==2.13.4
+
+# Notebook Execution & Reproducibility (main.ipynb)
+nbformat==5.10.4
+nbconvert==7.17.1
+
+# Testing & Client Automation
+pytest==9.1.1
+httpx==0.28.1

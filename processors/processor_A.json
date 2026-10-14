@@ -1,0 +1,25 @@
+{
+  "name": "Processor A",
+  "architecture_id": "processor_a_linear_5q",
+  "num_qubits": 5,
+  "qubit_indices": [0, 1, 2, 3, 4],
+  "topology_type": "Linear Chain",
+  "coupling_map": [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 4]
+  ],
+  "basis_gates": ["rz", "sx", "x", "cx"],
+  "description": "5-qubit linear chain reference architecture from Qiskit Fall Fest 2026 Phase 1 guide. Minimal connectivity with diameter 4.",
+  "transpile_settings": {
+    "optimization_level": 1,
+    "seed": 42,
+    "shots": 4096
+  },
+  "synthetic_noise": {
+    "single_qubit_depolarizing_error": 0.001,
+    "two_qubit_cx_depolarizing_error": 0.005,
+    "readout_error": 0.01
+  }
+}

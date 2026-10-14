@@ -1,0 +1,72 @@
+{
+  "run_id": "DUAL-56851F89-C99E71F1",
+  "timestamp": "2026-10-14T15:54:38.887431Z",
+  "platform_profile": "both",
+  "benchmark_mode": "hybrid",
+  "iterations": 2,
+  "warmup_iterations": 5,
+  "environment": {
+    "os_name": "Windows",
+    "os": "Windows",
+    "os_release": "10",
+    "os_version": "10.0.26200",
+    "architecture": "AMD64",
+    "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+    "cpu_physical_cores": 12,
+    "cpu_logical_cores": 16,
+    "cpu_cores_logical": 16,
+    "python_version": "3.10.11",
+    "cryptography_version": "50.0.2",
+    "qiskit_version": "2.2.3",
+    "affinity_supported": true,
+    "affinity_constraint_supported": true,
+    "initial_cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "cpu_configuration": {
+    "profile": "both (Platform A Standard + Platform B Constrained)",
+    "applied": true,
+    "active_cores": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "warning": null,
+    "note": "Dual-platform execution: Platform A executed unconstrained; Platform B executed with single-core affinity."
+  },
+  "verification_status": "PASS",
+  "dual_run": {
+    "platform_a_run_id": "RUN-56851F89",
+    "platform_b_run_id": "RUN-C99E71F1",
+    "relative_latency_overhead_percent": -38.46
+  }
+}

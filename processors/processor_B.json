@@ -1,0 +1,33 @@
+{
+  "name": "Processor B",
+  "architecture_id": "processor_b_heavy_hex_9q",
+  "num_qubits": 9,
+  "qubit_indices": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+  "topology_type": "Sparse Heavy-Hex-Inspired",
+  "coupling_map": [
+    [0, 1],
+    [1, 2],
+    [1, 6],
+    [2, 3],
+    [2, 6],
+    [2, 5],
+    [3, 4],
+    [4, 5],
+    [5, 6],
+    [6, 7],
+    [6, 8],
+    [8, 0]
+  ],
+  "basis_gates": ["rz", "sx", "x", "cx"],
+  "description": "9-qubit sparse heavy-hex-inspired reference architecture from Qiskit Fall Fest 2026 Phase 1 guide. Provides multi-cycle alternative routing paths.",
+  "transpile_settings": {
+    "optimization_level": 1,
+    "seed": 42,
+    "shots": 4096
+  },
+  "synthetic_noise": {
+    "single_qubit_depolarizing_error": 0.001,
+    "two_qubit_cx_depolarizing_error": 0.005,
+    "readout_error": 0.01
+  }
+}

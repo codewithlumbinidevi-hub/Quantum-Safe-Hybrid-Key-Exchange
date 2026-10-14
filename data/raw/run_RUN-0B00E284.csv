@@ -1,0 +1,6 @@
+trial,ecdh_keygen_ms,ecdh_derivation_ms,mlkem_keygen_ms,mlkem_encap_ms,mlkem_decap_ms,hybrid_kdf_ms,total_handshake_ms,ecdh_match,mlkem_match,hybrid_match,handshake_success
+1,0.1385,0.2342,0.6064,0.2672,0.1956,0.1261,2.0071,True,True,True,True
+2,0.1309,0.2372,0.6084,0.2535,0.1907,0.1225,1.9591,True,True,True,True
+3,0.1446,0.2345,0.5834,0.2512,0.2048,0.1202,1.9468,True,True,True,True
+4,0.1277,0.2256,0.6039,0.2484,0.2024,0.1242,1.9542,True,True,True,True
+5,0.1293,0.2327,0.5957,0.2334,0.217,0.1284,1.9381,True,True,True,True

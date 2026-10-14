@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Q-SHIELD global design system ─────────────────────────────────────── */
+
+@layer base {
+  body {
+    background-color: #F8F6F1;
+    color: #292824;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Legacy cyber pages keep their dark background */
+  .cyber-page {
+    background-color: #070b14;
+    color: #f1f5f9;
+  }
+}
+
+/* ── Custom scrollbars (warm tone) ────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F0EDE5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D5CCC2;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B8AFA4;
+}
+
+/* ── Code / monospace ─────────────────────────────────────────────────── */
+.code-block {
+  background: #17191D;
+  color: #D8DEE9;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* ── Severity badges ──────────────────────────────────────────────────── */
+.badge-critical {
+  background: #FAE8E8;
+  color: #C74848;
+  border: 1px solid #F0C8C8;
+}
+.badge-high {
+  background: #FBF0E5;
+  color: #C08030;
+  border: 1px solid #F0D8B4;
+}
+.badge-medium {
+  background: #FAFAE0;
+  color: #8A8030;
+  border: 1px solid #E8E490;
+}
+.badge-low {
+  background: #E8F5EE;
+  color: #3E9B70;
+  border: 1px solid #C4E8D4;
+}
+.badge-info {
+  background: #EEF4FB;
+  color: #3878B8;
+  border: 1px solid #C4D8F0;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────── */
+.sidebar-nav-item {
+  @apply flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-qs-textMuted transition-colors cursor-pointer select-none;
+}
+.sidebar-nav-item:hover {
+  @apply bg-qs-softMaroon text-qs-maroon;
+}
+.sidebar-nav-item.active {
+  @apply bg-qs-maroon text-white;
+  position: relative;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────── */
+.qs-card {
+  background: #FBFAF7;
+  border: 1px solid #E8E1D8;
+  border-radius: 10px;
+}
+
+/* ── Table ───────────────────────────────────────────────────────────── */
+.qs-table th {
+  background: #F4F1EC;
+  color: #8C877F;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #E8E1D8;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+.qs-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #F0EBE3;
+  font-size: 13px;
+  vertical-align: top;
+}
+.qs-table tr:last-child td {
+  border-bottom: none;
+}
+.qs-table tbody tr:hover td {
+  background: #FAF7F2;
+}
+
+/* ── Animations ──────────────────────────────────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-pulse-dot {
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to   { background-position: 200% center; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #F0EBE3 25%, #FAF7F2 50%, #F0EBE3 75%);
+  background-size: 200% auto;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* ── Focus ring ──────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid #963B43;
+  outline-offset: 2px;
+}
+
+/* ── Syntax highlight for code excerpts ─────────────────────────────── */
+.excerpt-current-line {
+  background: rgba(150, 59, 67, 0.15);
+  display: block;
+}

@@ -87,7 +87,7 @@ export const ProcessorBenchmarkPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <PageHeading
-        title="Processor A vs Processor B Architecture Benchmark"
+        title="Processor A vs Processor B (Simulated Quantum Architecture)"
         subtitle="Evaluates circuit transpilation overhead, routing constraints, and noisy simulation fidelity in Qiskit Aer between 5-qubit linear and 9-qubit sparse heavy-hex topologies."
         badge="QISKIT FALL FEST 2026 PHASE 1"
       />

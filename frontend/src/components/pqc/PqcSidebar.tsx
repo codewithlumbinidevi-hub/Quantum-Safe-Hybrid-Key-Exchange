@@ -57,8 +57,8 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Benchmarking',
     items: [
       { id: 'benchmark-lab', label: 'Benchmark Lab', icon: <FlaskConical size={14} /> },
-      { id: 'processor-comparison', label: 'Platform A vs B (CPU)', icon: <Cpu size={14} /> },
-      { id: 'processor-benchmark', label: 'Quantum Processor A/B', icon: <Layers size={14} /> },
+      { id: 'processor-comparison', label: 'Platform A vs B (Host CPU)', icon: <Cpu size={14} /> },
+      { id: 'processor-benchmark', label: 'Processor A vs B (Simulated Quantum)', icon: <Layers size={14} /> },
       { id: 'results-statistics', label: 'Results & Statistics', icon: <BarChart3 size={14} /> },
     ],
   },

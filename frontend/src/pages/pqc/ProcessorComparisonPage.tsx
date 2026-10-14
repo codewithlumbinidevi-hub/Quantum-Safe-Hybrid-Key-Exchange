@@ -70,7 +70,7 @@ export function ProcessorComparisonPage({
   return (
     <div className="space-y-6">
       <PageHeading
-        title="Platform A vs Platform B Benchmark"
+        title="Platform A vs Platform B (Host CPU)"
         subtitle="Empirical evaluation of cryptographic hybrid key exchange across standard vs constrained host CPU execution profiles."
         badge="HOST CPU PROFILES (PS-P1)"
       >

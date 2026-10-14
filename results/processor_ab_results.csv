@@ -1,3 +1,7 @@
-processor,topology,circuit_id,logical_depth,logical_basis_cx,transpiled_depth,logical_cx,transpiled_cx,cx_overhead,routing_swaps,swap_estimate,hellinger_fidelity,tvd,shot_noise_fidelity_floor,shot_noise_tvd_floor,shots,edges_count,timestamp
-Processor A,Linear Chain (5Q),qft_5,17,26,77,0,50,24,8,8,0.9992,0.0244,0.999,0.0242,4096,4,2026-10-14T16:46:15.162048Z
-Processor B,Sparse Heavy-Hex (9Q),qft_5,17,26,63,0,32,6,2,2,0.999,0.0256,0.999,0.0242,4096,12,2026-10-14T16:46:15.162048Z
+processor,topology,circuit_id,logical_depth,logical_basis_cx,transpiled_depth,transpiled_cx,cx_overhead,routing_swaps,swap_estimate,hellinger_fidelity,tvd,shot_noise_fidelity_floor,shot_noise_tvd_floor,discriminates_topology,shots,edges_count,timestamp
+Processor A,Linear Chain (5Q),qft_5,17,26,77,50,24,8,8,0.9992,0.0244,0.999,0.0242,Yes (Routing depth/CX),4096,4,2026-10-14T17:08:32.481045Z
+Processor B,Sparse Heavy-Hex (9Q),qft_5,17,26,63,32,6,2,2,0.999,0.0256,0.999,0.0242,Yes (Routing depth/CX),4096,12,2026-10-14T17:08:32.481045Z
+Processor A,Linear Chain (5Q),ghz_5,6,4,8,4,0,0,0,0.9403,0.0596,0.9997,0.0186,No (Linear nearest-neighbor),4096,4,2026-10-14T17:08:32.752229Z
+Processor B,Sparse Heavy-Hex (9Q),ghz_5,6,4,8,4,0,0,0,0.9403,0.0596,0.9997,0.0186,No (Linear nearest-neighbor),4096,12,2026-10-14T17:08:32.752229Z
+Processor A,Linear Chain (5Q),cross_conn_5,14,12,22,18,6,2,2,0.9991,0.0227,0.999,0.0242,Yes (Alternative routing paths),4096,4,2026-10-14T17:08:32.997621Z
+Processor B,Sparse Heavy-Hex (9Q),cross_conn_5,14,12,16,12,0,0,0,0.9991,0.0247,0.999,0.0242,Yes (Alternative routing paths),4096,12,2026-10-14T17:08:32.997621Z

@@ -1,9 +1,9 @@
 {
-  "run_id": "DUAL-535D86A8-B2339547",
-  "timestamp": "2026-10-14T16:19:53.134722Z",
+  "run_id": "DUAL-DD0BC0FB-6596FE8C",
+  "timestamp": "2026-10-14T17:08:31.825128Z",
   "platform_profile": "both",
   "benchmark_mode": "hybrid",
-  "iterations": 2,
+  "iterations": 200,
   "warmup_iterations": 5,
   "environment": {
     "os_name": "Windows",
@@ -65,8 +65,8 @@
   },
   "verification_status": "PASS",
   "dual_run": {
-    "platform_a_run_id": "RUN-535D86A8",
-    "platform_b_run_id": "RUN-B2339547",
-    "relative_latency_overhead_percent": -46.13
+    "platform_a_run_id": "RUN-DD0BC0FB",
+    "platform_b_run_id": "RUN-6596FE8C",
+    "relative_latency_overhead_percent": -11.15
   }
 }

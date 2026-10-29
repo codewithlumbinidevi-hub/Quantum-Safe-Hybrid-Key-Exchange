@@ -122,3 +122,13 @@ export async function verifySubmissionArtifacts(): Promise<SubmissionVerificatio
   return handleResponse<SubmissionVerificationResponse>(res, 'Failed to verify submission artifacts');
 }
 
+export async function fetchReportText(): Promise<string> {
+  const res = await fetch(`${API_BASE}/report/text`);
+  const data = await handleResponse<{ content: string }>(res, 'Failed to fetch report text');
+  return data.content;
+}
+
+export function getResultsBundleUrl(): string {
+  return `${API_BASE}/results/bundle`;
+}
+

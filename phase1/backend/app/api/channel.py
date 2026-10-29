@@ -8,6 +8,7 @@ from __future__ import annotations
 import csv
 import io
 import os
+import zipfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -205,6 +206,33 @@ async def download_result_file(file_path: str):
         path=str(full_path),
         filename=full_path.name,
         media_type=media_type,
+    )
+
+
+@router.get("/report/text")
+async def get_report_text():
+    """Retrieve full markdown text of report.md for the embedded viewer."""
+    rep_path = REPO_ROOT / "report.md"
+    if not rep_path.exists():
+        raise HTTPException(status_code=404, detail="report.md not found")
+    return {"content": rep_path.read_text(encoding="utf-8")}
+
+
+@router.get("/results/bundle")
+async def download_results_bundle():
+    """Download entire results directory as a zip bundle."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(RESULTS_DIR):
+            for file in files:
+                p = Path(root) / file
+                rel = p.relative_to(RESULTS_DIR)
+                zf.write(p, arcname=f"results/{rel}")
+    buf.seek(0)
+    return Response(
+        content=buf.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=qff26_p1_results_bundle.zip"},
     )
 
 

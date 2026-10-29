@@ -12,3 +12,4 @@
 - [x] PS-P1: all of `SECURITY_TESTS.md` T1–T9 addressed (PASS across PQC and Classical); $\ge 100$ handshakes measured; three official payloads (1 KB, 100 KB, 10 MB) verified byte-exact
 - [x] Platform D (optional): `platform_D.md` included and measured (50ms RTT, 1 Mbps constrained WAN emulation)
 - [x] A teammate who did not write the code has re-run the README from a clean clone (Clean clone test executed and verified)
+

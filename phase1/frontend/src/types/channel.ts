@@ -202,3 +202,4 @@ export interface SubmissionVerificationResponse {
   items: SubmissionVerificationItem[];
   checklist_status: Record<string, boolean>;
 }
+

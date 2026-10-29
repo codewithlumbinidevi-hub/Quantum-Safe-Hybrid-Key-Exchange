@@ -240,3 +240,4 @@ Once session keys are established, both suites use AES-256-GCM. Payload encrypti
   - `python P1_secure_channel/plot_results.py` $\to$ Figure generation.
   - `python P1_secure_channel/provenance_check.py` $\to$ Provenance verification.
 - **Reference Environment**: Python 3.10.11 on AMD64 Windows 10, `cryptography==50.0.2`, `pqcrypto==1.0.0`, `psutil==7.2.2`.
+

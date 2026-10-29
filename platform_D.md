@@ -66,3 +66,4 @@ From [`P1_secure_channel/results/platform_D_results.csv`](file:///c:/Users/LUMBI
 ## 7. Limits of This Emulation
 1. **Packet Loss & Retransmission**: The emulator assumes zero packet drop; on real cellular/lossy links, packet loss on a 9 KB multi-segment transmission triggers TCP retransmissions and congestion window collapses, which would further penalize PQC.
 2. **MTU Fragmentation**: In real IP networks with standard 1,500-byte MTUs, PQC's 4.4 KB `ServerHello` and 3.3 KB `ClientAuth` require multi-packet IP fragmentation (3 to 4 packets per flight), whereas Classical fits inside a single IP packet.
+

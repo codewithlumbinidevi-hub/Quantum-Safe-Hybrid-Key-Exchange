@@ -123,7 +123,7 @@ def test_trust_info():
     assert "Explicitly Pinned" in data["identity_trust_model"]
 
 
-def test_benchmark_endpoints():
+def test_benchmark_endpoints(monkeypatch):
     # Test GET benchmark/latest
     res_get = client.get("/api/channel/benchmark/latest")
     assert res_get.status_code == 200
@@ -132,6 +132,10 @@ def test_benchmark_endpoints():
     assert len(data["payloads"]) == 6
     assert len(data["primitives"]) >= 10
     assert len(data["figures"]) == 5
+
+    # Mock start_benchmark_job so it doesn't spawn a worker mutating official benchmark CSV files during test
+    from phase1.backend.app.api import channel
+    monkeypatch.setattr(channel.ChannelService, "start_benchmark_job", lambda *args, **kwargs: "job_bench_mock_123")
 
     # Test POST benchmark/run
     res_post = client.post("/api/channel/benchmark/run", json={"suite": "pqc", "trials": 5, "mode": "in_process"})

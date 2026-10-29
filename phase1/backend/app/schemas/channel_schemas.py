@@ -169,3 +169,4 @@ class SubmissionVerificationResponse(BaseModel):
     verified_files: int
     items: List[SubmissionVerificationItem]
     checklist_status: Dict[str, bool]
+

@@ -168,3 +168,4 @@ Configured via `suite_id = 0x0002` behind the identical `CipherSuite` abstractio
 2. **Trust Distribution**: Operates via out-of-band pinned trust anchors rather than an automated X.509 PKI certificate chain parser.
 3. **Stateless Handshake Replay Boundary**: Handshake replay protection is enforced via ephemeral nonces bound into the transcript; stateless server implementations do not persist across process reboots.
 4. **Side-Channel Hardening**: While primitives in `cryptography` provide constant-time core operations, high-level Python framing is not hardened against physical side-channel attacks.
+

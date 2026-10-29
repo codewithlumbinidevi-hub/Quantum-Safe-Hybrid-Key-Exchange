@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import socket
+import subprocess
 import sys
 import threading
 import time
@@ -867,6 +868,23 @@ class ChannelService:
                 "benchmark_results": d_rows,
             },
         )
+
+    @classmethod
+    def record_platform_a(cls) -> Dict[str, Any]:
+        """Re-run common/env_check.py and return refreshed platform A info."""
+        cmd = [sys.executable, str(REPO_ROOT / "common" / "env_check.py")]
+        subprocess.run(cmd, cwd=str(REPO_ROOT), check=True, capture_output=True)
+        return cls.get_platform_info().platform_a
+
+    @classmethod
+    def run_platform_b(cls, target_cmd: str = "python P1_secure_channel/verify_stage2.py") -> Dict[str, Any]:
+        """Execute a verification command constrained by common/run_on_platform.py --platform B."""
+        cmd = [sys.executable, str(REPO_ROOT / "common" / "run_on_platform.py"), "--platform", "B"] + target_cmd.split()
+        res = subprocess.run(cmd, cwd=str(REPO_ROOT), check=True, capture_output=True, text=True)
+        return {
+            "stdout": res.stdout,
+            "platform_b": cls.get_platform_info().platform_b,
+        }
 
     @classmethod
     def get_trust_info(cls) -> TrustInfoResponse:

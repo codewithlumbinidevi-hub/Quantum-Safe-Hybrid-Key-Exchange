@@ -176,6 +176,26 @@ async def get_platform_info_endpoint() -> PlatformInfoResponse:
     return ChannelService.get_platform_info()
 
 
+@router.post("/platform/record-a")
+async def record_platform_a_endpoint():
+    """Trigger common/env_check.py to refresh platform_A_info.json."""
+    try:
+        data = ChannelService.record_platform_a()
+        return {"status": "ok", "platform_a": data}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to record Platform A: {str(exc)}")
+
+
+@router.post("/platform/run-b")
+async def run_platform_b_endpoint(cmd: str = "python P1_secure_channel/verify_stage2.py"):
+    """Execute command constrained by common/run_on_platform.py --platform B."""
+    try:
+        res = ChannelService.run_platform_b(target_cmd=cmd)
+        return {"status": "ok", "result": res}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to run on Platform B: {str(exc)}")
+
+
 @router.get("/trust/info", response_model=TrustInfoResponse)
 async def get_trust_info_endpoint() -> TrustInfoResponse:
     """Retrieve pinned trust store identity fingerprints, cipher suites, and transcript binding formula."""

@@ -103,6 +103,17 @@ export async function fetchPlatformInfo(): Promise<PlatformInfo> {
   return handleResponse<PlatformInfo>(res, 'Failed to fetch platform info');
 }
 
+export async function recordPlatformA(): Promise<Record<string, any>> {
+  const res = await fetch(`${API_BASE}/platform/record-a`, { method: 'POST' });
+  return handleResponse<Record<string, any>>(res, 'Failed to record Platform A');
+}
+
+export async function runPlatformB(cmd?: string): Promise<{ status: string; result: any }> {
+  const url = cmd ? `${API_BASE}/platform/run-b?cmd=${encodeURIComponent(cmd)}` : `${API_BASE}/platform/run-b`;
+  const res = await fetch(url, { method: 'POST' });
+  return handleResponse<{ status: string; result: any }>(res, 'Failed to run on Platform B');
+}
+
 export async function fetchTrustInfo(): Promise<TrustInfo> {
   const res = await fetch(`${API_BASE}/trust/info`);
   return handleResponse<TrustInfo>(res, 'Failed to fetch trust info');

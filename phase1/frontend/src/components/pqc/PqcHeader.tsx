@@ -1,14 +1,13 @@
 import React from 'react';
-import { Activity, ShieldCheck, AlertCircle, ScanSearch } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 interface PqcHeaderProps {
   isBackendHealthy: boolean | null;
   onRunQuickExchange?: () => void;
   isRunning?: boolean;
-  onSwitchToScanner?: () => void;
 }
 
-export function PqcHeader({ isBackendHealthy, onRunQuickExchange, isRunning, onSwitchToScanner }: PqcHeaderProps) {
+export function PqcHeader({ isBackendHealthy, onRunQuickExchange, isRunning }: PqcHeaderProps) {
   return (
     <header
       className="sticky top-0 z-30 flex items-center justify-between px-6 py-3 border-b"
@@ -39,23 +38,6 @@ export function PqcHeader({ isBackendHealthy, onRunQuickExchange, isRunning, onS
         >
           TRACK 5 · PS-P1 (FIPS 203)
         </span>
-
-        {/* PS-P2 Scanner Switcher */}
-        {onSwitchToScanner && (
-          <button
-            onClick={onSwitchToScanner}
-            className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium transition-colors hover:bg-[#E4DCD3] cursor-pointer"
-            style={{
-              background: '#EDE8E0',
-              color: '#68615A',
-              border: '1px solid #DCD3C7',
-            }}
-            title="Switch to Classical Cryptography AST Scanner & Migration Planner (PS-P2)"
-          >
-            <ScanSearch size={12} />
-            <span>PS-P2 Scanner →</span>
-          </button>
-        )}
 
         {/* Backend Status Chip */}
         <div

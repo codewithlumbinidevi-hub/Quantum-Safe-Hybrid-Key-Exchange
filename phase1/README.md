@@ -33,9 +33,6 @@ The platform implements an end-to-end hybrid key encapsulation mechanism combini
    - **Processor A**: 5-qubit linear chain (`[(0,1),(1,2),(2,3),(3,4)]`, 4 coupling edges).
    - **Processor B**: 9-qubit sparse heavy-hex topology (12 coupling edges).
 
-### Auxiliary Non-Graded Extension: PS-P2 (Cryptographic Scanner)
-The repository includes an auxiliary deterministic static-analysis scanner for cataloging quantum-vulnerable cryptography (RSA, DSA, DH, ECC). While functional and integrated into the frontend switcher pill, **PS-P1 is the sole primary submission statement evaluated for Phase 1.**
-
 ---
 
 ## 📂 Mandated Repository Structure
@@ -103,7 +100,6 @@ phase1/
 └── frontend/                      # React 18 + TypeScript + Vite Cyber Dashboard
     ├── src/
     │   ├── pages/pqc/             # PS-P1 Dedicated Research Dashboard pages (Warm Ivory & Maroon)
-    │   ├── pages/scanner/         # PS-P2 Auxiliary Scanner pages
     │   ├── services/api.ts        # Axios API client connecting to FastAPI backend
     │   └── styles/index.css       # Unified design tokens, responsive typography, custom animations
     ├── vite.config.ts             # Reverse proxy configuration (/api -> http://127.0.0.1:8000)

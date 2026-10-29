@@ -14,7 +14,6 @@ from backend.app.api import (
     crypto_benchmarks,
     processor_benchmarks,
     results,
-    scanner,
     channel,
 )
 
@@ -53,7 +52,6 @@ app.include_router(hybrid_exchange.router)
 app.include_router(crypto_benchmarks.router)
 app.include_router(processor_benchmarks.router)
 app.include_router(results.router)
-app.include_router(scanner.router)
 app.include_router(channel.router)
 
 

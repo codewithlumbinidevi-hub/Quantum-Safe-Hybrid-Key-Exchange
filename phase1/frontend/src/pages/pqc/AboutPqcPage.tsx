@@ -18,7 +18,7 @@ export function AboutPqcPage() {
               <strong>Q-SHIELD-PQC</strong> is developed for <strong>Qiskit Fall Fest 2026 (Track 5: Post-Quantum Cryptography & Quantum-Safe Systems)</strong> at SRM University-AP.
             </p>
             <p>
-              The platform addresses <strong>Problem Statement PS-P1: Quantum-Safe Hybrid Key Exchange</strong> as our primary and sole submission statement, adhering strictly to the official universal Processor A/B benchmarking framework. (An auxiliary cryptographic scanner is included as a non-graded bonus extension).
+              The platform addresses <strong>Problem Statement PS-P1: Quantum-Safe Hybrid Key Exchange &amp; Secure Communication Channel</strong> as our primary and sole submission statement, adhering strictly to the official universal Processor A/B benchmarking framework and NIST post-quantum standards.
             </p>
             <div className="p-3 rounded bg-stone-50 border border-stone-200 space-y-1.5 text-[11px]">
               <div>• <strong>Standards Compliance:</strong> NIST FIPS 203 ML-KEM-768, RFC 5869 HKDF-SHA256, NIST SP 800-56A Rev 3 ECDH.</div>

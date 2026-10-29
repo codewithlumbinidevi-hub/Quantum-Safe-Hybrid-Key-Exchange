@@ -194,7 +194,6 @@ Write-Host ""
 Write-Host "  [PHASE 1 - QUANTUM ARCHITECTURE & HYBRID PQC]" -ForegroundColor Cyan
 Write-Host "   * Research Dashboard & Hybrid Lab:    http://localhost:5173/" -ForegroundColor White
 Write-Host "   * Processor & Quantum Circuit Sim:    http://localhost:5173/ (under Processor Benchmark)" -ForegroundColor White
-Write-Host "   * Classical Crypto Scanner (PS-P2):   http://localhost:5173/ (click PS-P2 Scanner in header)" -ForegroundColor White
 Write-Host ""
 Write-Host "  [API DOCUMENTATION & BACKEND METRICS]" -ForegroundColor Cyan
 Write-Host "   * Interactive OpenAPI (Swagger Docs): http://127.0.0.1:8000/docs" -ForegroundColor White
@@ -244,3 +243,4 @@ try {
     }
     Write-Host "[+] All services stopped cleanly." -ForegroundColor Green
 }
+

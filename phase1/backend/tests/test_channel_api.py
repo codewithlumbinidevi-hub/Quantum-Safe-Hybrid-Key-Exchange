@@ -134,8 +134,10 @@ def test_benchmark_endpoints(monkeypatch):
     assert len(data["figures"]) == 5
 
     # Mock start_benchmark_job so it doesn't spawn a worker mutating official benchmark CSV files during test
-    from phase1.backend.app.api import channel
+    from backend.app.api import channel
+    from backend.app.services.channel_service import ChannelService
     monkeypatch.setattr(channel.ChannelService, "start_benchmark_job", lambda *args, **kwargs: "job_bench_mock_123")
+    monkeypatch.setattr(ChannelService, "start_benchmark_job", lambda *args, **kwargs: "job_bench_mock_123")
 
     # Test POST benchmark/run
     res_post = client.post("/api/channel/benchmark/run", json={"suite": "pqc", "trials": 5, "mode": "in_process"})

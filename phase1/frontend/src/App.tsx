@@ -1,15 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { PqcApp } from './pages/PqcApp';
-import { ScannerApp } from './pages/ScannerApp';
 
 export function App() {
-  const [appMode, setAppMode] = useState<'pqc' | 'scanner'>('pqc');
-
-  if (appMode === 'scanner') {
-    return <ScannerApp onSwitchToPqc={() => setAppMode('pqc')} />;
-  }
-
-  return <PqcApp onSwitchToScanner={() => setAppMode('scanner')} />;
+  return <PqcApp />;
 }
 
 export default App;

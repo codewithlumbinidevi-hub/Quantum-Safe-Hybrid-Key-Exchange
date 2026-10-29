@@ -40,11 +40,7 @@ import {
   EnvironmentInfo,
 } from '../types';
 
-interface PqcAppProps {
-  onSwitchToScanner?: () => void;
-}
-
-export function PqcApp({ onSwitchToScanner }: PqcAppProps) {
+export function PqcApp() {
   // Default to Phase 2 Security Suite (highest priority / graded objective)
   const [activePage, setActivePage] = useState<PqcPage>('channel-security');
   const [isBackendHealthy, setIsBackendHealthy] = useState<boolean | null>(null);
@@ -128,7 +124,6 @@ export function PqcApp({ onSwitchToScanner }: PqcAppProps) {
         activePage={activePage}
         onNavigate={setActivePage}
         hasExchangeResult={exchangeResult !== null}
-        onSwitchToScanner={onSwitchToScanner}
       />
 
       {/* Main Content Area */}
@@ -138,7 +133,6 @@ export function PqcApp({ onSwitchToScanner }: PqcAppProps) {
           isBackendHealthy={isBackendHealthy}
           onRunQuickExchange={() => handleRunExchange()}
           isRunning={isExchangeRunning}
-          onSwitchToScanner={onSwitchToScanner}
         />
 
         {/* Global Phase 2 Status Bar */}
@@ -224,23 +218,6 @@ export function PqcApp({ onSwitchToScanner }: PqcAppProps) {
           {activePage === 'about-pqc' && <AboutPqcPage />}
         </main>
       </div>
-
-      {/* Switcher Pill to switch to PS-P2 Scanner */}
-      {onSwitchToScanner && (
-        <button
-          onClick={onSwitchToScanner}
-          className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium shadow-md cursor-pointer select-none transition-transform hover:scale-105"
-          style={{
-            background: '#292824',
-            color: '#FBFAF7',
-            border: '1px solid #4A4540',
-          }}
-          title="Switch to PS-P2 Cryptographic Scanner & Migration Engine"
-        >
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#963B43' }} />
-          <span>Switch to PS-P2 Scanner</span>
-        </button>
-      )}
     </div>
   );
 }

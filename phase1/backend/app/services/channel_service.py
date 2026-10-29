@@ -693,6 +693,122 @@ class ChannelService:
         job.result = records
 
     @classmethod
+    def run_benchmark_background(cls, job_id: str, suite_param: str, trials: int, mode_param: str):
+        """Run benchmark trials in background, update CSV and job status."""
+        import numpy as np
+
+        job = _JOB_STORE[job_id]
+        job.status = "running"
+
+        suites_to_run = []
+        if suite_param in ("pqc", "both"):
+            suites_to_run.append((SUITE_PQC, "PQC", "ML-KEM-768", "ML-DSA-65"))
+        if suite_param in ("classical", "both"):
+            suites_to_run.append((SUITE_CLASSICAL, "classical-baseline", "X25519", "Ed25519"))
+
+        is_tcp = (mode_param == "tcp_loopback")
+        scope_str = "local (TCP loopback)" if is_tcp else "local (in-process)"
+
+        total_steps = len(suites_to_run) * trials
+        completed_steps = 0
+        all_results = []
+
+        hs_file = RESULTS_DIR / "handshake_results.csv"
+        existing_rows = []
+        if hs_file.exists():
+            with open(hs_file, "r", encoding="utf-8") as f:
+                existing_rows = list(csv.DictReader(f))
+
+        for s_idx, (s_id, s_mode, kem_name, sig_name) in enumerate(suites_to_run):
+            job.current_step = f"Benchmarking {s_mode} ({scope_str})..."
+            times_ms: List[float] = []
+
+            # 3 warmup iterations
+            for _ in range(3):
+                cls.execute_handshake(
+                    suite_param="pqc" if s_id == SUITE_PQC else "classical",
+                    transport_param="tcp" if is_tcp else "loopback",
+                    payload_param="none",
+                )
+
+            for t_i in range(trials):
+                t0 = time.perf_counter_ns()
+                h_res = cls.execute_handshake(
+                    suite_param="pqc" if s_id == SUITE_PQC else "classical",
+                    transport_param="tcp" if is_tcp else "loopback",
+                    payload_param="none",
+                )
+                t1 = time.perf_counter_ns()
+                times_ms.append((t1 - t0) / 1e6)
+
+                completed_steps += 1
+                job.progress = int((completed_steps / total_steps) * 100)
+
+            med = float(np.median(times_ms))
+            q25, q75 = np.percentile(times_ms, [25, 75])
+            p95 = float(np.percentile(times_ms, 95))
+            iqr = float(q75 - q25)
+
+            new_row = {
+                "run_id": str(len(existing_rows) + 1),
+                "platform": "A",
+                "mode": s_mode,
+                "kem": kem_name,
+                "signature": sig_name,
+                "trials": str(trials),
+                "median_handshake_ms": f"{med:.4f}",
+                "iqr_ms": f"{iqr:.4f}",
+                "p95_ms": f"{p95:.4f}",
+                "client_to_server_bytes": str(h_res.flight1_bytes + h_res.flight3_bytes),
+                "server_to_client_bytes": str(h_res.flight2_bytes),
+                "total_handshake_bytes": str(h_res.total_wire_bytes),
+                "success_count": str(trials),
+                "failure_count": "0",
+                "local_or_network": scope_str,
+            }
+            existing_rows.append(new_row)
+            all_results.append(new_row)
+
+        # Write updated CSV
+        with open(hs_file, "w", newline="", encoding="utf-8") as f:
+            fieldnames = [
+                "run_id", "platform", "mode", "kem", "signature", "trials",
+                "median_handshake_ms", "iqr_ms", "p95_ms", "client_to_server_bytes",
+                "server_to_client_bytes", "total_handshake_bytes", "success_count",
+                "failure_count", "local_or_network"
+            ]
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for r in existing_rows:
+                writer.writerow(r)
+
+        job.progress = 100
+        job.status = "completed"
+        job.current_step = "Benchmark complete"
+        job.completed_at = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        job.result = all_results
+
+    @classmethod
+    def start_benchmark_job(cls, suite_param: str = "both", trials: int = 20, mode_param: str = "in_process") -> str:
+        job_id = f"job_bench_{uuid.uuid4().hex[:8]}"
+        job = BackgroundJobStatus(
+            job_id=job_id,
+            job_type="benchmark",
+            status="queued",
+            progress=0,
+            current_step="Queued for benchmark execution",
+            started_at=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        )
+        _JOB_STORE[job_id] = job
+        t = threading.Thread(
+            target=cls.run_benchmark_background,
+            args=(job_id, suite_param, trials, mode_param),
+            daemon=True,
+        )
+        t.start()
+        return job_id
+
+    @classmethod
     def start_tests_job(cls, test_id: Optional[str] = None) -> str:
         job_id = f"job_tests_{uuid.uuid4().hex[:8]}"
         job = BackgroundJobStatus(

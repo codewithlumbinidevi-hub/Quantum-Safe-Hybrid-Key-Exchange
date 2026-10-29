@@ -123,6 +123,22 @@ def test_trust_info():
     assert "Explicitly Pinned" in data["identity_trust_model"]
 
 
+def test_benchmark_endpoints():
+    # Test GET benchmark/latest
+    res_get = client.get("/api/channel/benchmark/latest")
+    assert res_get.status_code == 200
+    data = res_get.json()
+    assert len(data["handshakes"]) > 0
+    assert len(data["payloads"]) == 6
+    assert len(data["primitives"]) >= 10
+    assert len(data["figures"]) == 5
+
+    # Test POST benchmark/run
+    res_post = client.post("/api/channel/benchmark/run", json={"suite": "pqc", "trials": 5, "mode": "in_process"})
+    assert res_post.status_code == 200
+    assert "job_id" in res_post.json()
+
+
 def test_submission_verify():
     res = client.get("/api/channel/submission/verify")
     assert res.status_code == 200

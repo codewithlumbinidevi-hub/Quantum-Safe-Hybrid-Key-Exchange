@@ -85,6 +85,19 @@ export async function fetchBenchmarkLatest(): Promise<BenchmarkLatestResponse> {
   return handleResponse<BenchmarkLatestResponse>(res, 'Failed to fetch benchmark data');
 }
 
+export async function startBenchmarkRun(
+  suite: 'pqc' | 'classical' | 'both' = 'both',
+  trials: number = 20,
+  mode: 'in_process' | 'tcp_loopback' = 'in_process'
+): Promise<{ job_id: string; status: string; message: string }> {
+  const res = await fetch(`${API_BASE}/benchmark/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ suite, trials, mode }),
+  });
+  return handleResponse<{ job_id: string; status: string; message: string }>(res, 'Failed to trigger benchmark');
+}
+
 export async function fetchPlatformInfo(): Promise<PlatformInfo> {
   const res = await fetch(`${API_BASE}/platform/info`);
   return handleResponse<PlatformInfo>(res, 'Failed to fetch platform info');
@@ -108,3 +121,4 @@ export async function verifySubmissionArtifacts(): Promise<SubmissionVerificatio
   const res = await fetch(`${API_BASE}/submission/verify`);
   return handleResponse<SubmissionVerificationResponse>(res, 'Failed to verify submission artifacts');
 }
+

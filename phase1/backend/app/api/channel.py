@@ -145,6 +145,21 @@ async def get_latest_benchmarks() -> Dict[str, Any]:
     }
 
 
+@router.post("/benchmark/run")
+async def run_benchmark_endpoint(req: BenchmarkRunRequest):
+    """Trigger execution of benchmark trials in background."""
+    job_id = ChannelService.start_benchmark_job(
+        suite_param=req.suite,
+        trials=req.trials,
+        mode_param=req.mode,
+    )
+    return {
+        "job_id": job_id,
+        "status": "queued",
+        "message": f"Benchmark job queued under run {job_id} ({req.trials} trials, suite: {req.suite})",
+    }
+
+
 @router.get("/jobs/{job_id}", response_model=BackgroundJobStatus)
 async def get_job_status_endpoint(job_id: str) -> BackgroundJobStatus:
     """Poll progress and outcome of background jobs."""
@@ -197,3 +212,4 @@ async def download_result_file(file_path: str):
 async def verify_submission_endpoint() -> SubmissionVerificationResponse:
     """Re-check every submission artifact against manifest.json and SHA256SUMS."""
     return ChannelService.verify_submission()
+

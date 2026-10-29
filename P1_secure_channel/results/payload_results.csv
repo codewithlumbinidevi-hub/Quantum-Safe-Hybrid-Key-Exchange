@@ -1,0 +1,7 @@
+platform,mode,payload,plaintext_bytes,ciphertext_bytes,overhead_bytes,trials,median_encrypt_ms,median_decrypt_ms,sha256_match,encrypt_throughput_mb_s,decrypt_throughput_mb_s
+A,PQC,payload_1KB.bin,1024,1062,38,100,0.0067,0.0066,MATCH,145.76,147.96
+A,PQC,payload_100KB.bin,102400,102476,76,100,0.086,0.0783,MATCH,1135.54,1247.21
+A,PQC,payload_10MB.bin,10485760,10491840,6080,20,20.8526,24.0961,MATCH,479.56,415.0
+A,classical-baseline,payload_1KB.bin,1024,1062,38,100,0.012,0.0112,MATCH,81.38,86.81
+A,classical-baseline,payload_100KB.bin,102400,102476,76,100,0.0874,0.0796,MATCH,1117.35,1226.07
+A,classical-baseline,payload_10MB.bin,10485760,10491840,6080,20,21.594,25.843,MATCH,463.09,386.95

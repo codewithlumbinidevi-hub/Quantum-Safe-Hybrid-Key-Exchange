@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { PqcSidebar, PqcPage } from '../components/pqc/PqcSidebar';
 import { PqcHeader } from '../components/pqc/PqcHeader';
+import { ChannelStatusBar } from '../components/pqc/ChannelStatusBar';
+
+// Phase 2 Modules
+import { SecuritySuitePage } from './channel/SecuritySuitePage';
+import { PerformanceEvaluationPage } from './channel/PerformanceEvaluationPage';
+import { LiveHandshakePage } from './channel/LiveHandshakePage';
+import { TechnicalAnalysisPage } from './channel/TechnicalAnalysisPage';
+import { ReproducibilityPage } from './channel/ReproducibilityPage';
+import { PlatformsPage } from './channel/PlatformsPage';
+
+// Phase 1 Legacy Views
 import { ResearchDashboardPage } from './pqc/ResearchDashboardPage';
 import { HybridExchangeLabPage } from './pqc/HybridExchangeLabPage';
 import { BenchmarkLabPage } from './pqc/BenchmarkLabPage';
@@ -14,6 +25,7 @@ import { MlkemReferencePage } from './pqc/MlkemReferencePage';
 import { HybridKdfReferencePage } from './pqc/HybridKdfReferencePage';
 import { ArchitectureMethodologyPage } from './pqc/ArchitectureMethodologyPage';
 import { AboutPqcPage } from './pqc/AboutPqcPage';
+
 import {
   fetchHealth,
   runHybridExchange,
@@ -21,6 +33,7 @@ import {
   getLatestCryptoBenchmark,
   getExportCryptoCsvUrl,
 } from '../services/api';
+import { fetchChannelStatus } from '../services/channelApi';
 import {
   HybridExchangeResult,
   CryptoBenchmarkResult,
@@ -32,24 +45,37 @@ interface PqcAppProps {
 }
 
 export function PqcApp({ onSwitchToScanner }: PqcAppProps) {
-  const [activePage, setActivePage] = useState<PqcPage>('dashboard');
+  // Default to Phase 2 Security Suite (highest priority / graded objective)
+  const [activePage, setActivePage] = useState<PqcPage>('channel-security');
   const [isBackendHealthy, setIsBackendHealthy] = useState<boolean | null>(null);
+  const [channelStatus, setChannelStatus] = useState<Record<string, any> | null>(null);
   const [environmentInfo, setEnvironmentInfo] = useState<EnvironmentInfo | null>(null);
   const [exchangeResult, setExchangeResult] = useState<HybridExchangeResult | null>(null);
   const [benchmarkResult, setBenchmarkResult] = useState<CryptoBenchmarkResult | null>(null);
   const [isExchangeRunning, setIsExchangeRunning] = useState(false);
   const [isBenchmarkRunning, setIsBenchmarkRunning] = useState(false);
 
-  // Poll health and load latest benchmark on startup
+  const loadStatus = async () => {
+    try {
+      const health = await fetchHealth();
+      setIsBackendHealthy(health.status === 'healthy');
+      setEnvironmentInfo(health.environment);
+    } catch {
+      setIsBackendHealthy(false);
+    }
+
+    try {
+      const chStatus = await fetchChannelStatus();
+      setChannelStatus(chStatus);
+    } catch {
+      // Channel status optional fallback
+    }
+  };
+
+  // Poll health and channel metadata on startup
   useEffect(() => {
     async function init() {
-      try {
-        const health = await fetchHealth();
-        setIsBackendHealthy(health.status === 'healthy');
-        setEnvironmentInfo(health.environment);
-      } catch {
-        setIsBackendHealthy(false);
-      }
+      await loadStatus();
 
       try {
         const latest = await getLatestCryptoBenchmark();
@@ -62,19 +88,11 @@ export function PqcApp({ onSwitchToScanner }: PqcAppProps) {
     }
     init();
 
-    const interval = setInterval(async () => {
-      try {
-        const health = await fetchHealth();
-        setIsBackendHealthy(health.status === 'healthy');
-      } catch {
-        setIsBackendHealthy(false);
-      }
-    }, 15000);
-
+    const interval = setInterval(loadStatus, 15000);
     return () => clearInterval(interval);
   }, []);
 
-  // Handlers for exchange and benchmark
+  // Handlers for Phase 1 legacy exchange and benchmark
   const handleRunExchange = async (message?: string) => {
     setIsExchangeRunning(true);
     try {
@@ -121,8 +139,24 @@ export function PqcApp({ onSwitchToScanner }: PqcAppProps) {
           isRunning={isExchangeRunning}
         />
 
+        {/* Global Phase 2 Status Bar */}
+        <ChannelStatusBar
+          isBackendHealthy={isBackendHealthy}
+          channelStatus={channelStatus}
+          onRefresh={loadStatus}
+        />
+
         {/* Content Body */}
         <main className="flex-1 p-6 max-w-7xl w-full mx-auto">
+          {/* Phase 2 Modules */}
+          {activePage === 'channel-security' && <SecuritySuitePage />}
+          {activePage === 'channel-performance' && <PerformanceEvaluationPage />}
+          {activePage === 'channel-handshake' && <LiveHandshakePage />}
+          {activePage === 'channel-analysis' && <TechnicalAnalysisPage />}
+          {activePage === 'channel-reproducibility' && <ReproducibilityPage />}
+          {activePage === 'channel-platforms' && <PlatformsPage />}
+
+          {/* Phase 1 Legacy Views */}
           {activePage === 'dashboard' && (
             <ResearchDashboardPage
               exchangeResult={exchangeResult}

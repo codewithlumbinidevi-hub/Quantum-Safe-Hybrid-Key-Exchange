@@ -1,7 +1,7 @@
 """
 Q-SHIELD-PQC Backend Application Entrypoint.
-FastAPI application orchestrating Post-Quantum Hybrid Key Agreement
-and Qiskit Architecture Benchmarking.
+FastAPI application orchestrating Post-Quantum Hybrid Key Agreement,
+Phase 2 Quantum-Safe Secure Communication Channel, and Qiskit Architecture Benchmarking.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +15,7 @@ from backend.app.api import (
     processor_benchmarks,
     results,
     scanner,
+    channel,
 )
 
 
@@ -53,6 +54,7 @@ app.include_router(crypto_benchmarks.router)
 app.include_router(processor_benchmarks.router)
 app.include_router(results.router)
 app.include_router(scanner.router)
+app.include_router(channel.router)
 
 
 @app.get("/")
@@ -63,6 +65,7 @@ async def root():
         "status": "online",
         "docs_url": "/docs",
         "api_health": "/api/health",
+        "channel_status": "/api/channel/status",
     }
 
 

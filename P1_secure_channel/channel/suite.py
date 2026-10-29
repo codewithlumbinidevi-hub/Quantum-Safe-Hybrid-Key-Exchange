@@ -14,7 +14,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ed25519, mldsa, mlkem, x25519
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
-from P1_secure_channel.channel.exceptions import DowngradeError, SignatureError
+from P1_secure_channel.channel.exceptions import DowngradeError, HandshakeError, SignatureError
 
 SUITE_PQC = 0x0001
 SUITE_CLASSICAL = 0x0002
@@ -67,17 +67,25 @@ class CipherSuite:
             (shared_secret: 32 bytes, kem_ciphertext: bytes)
         """
         if self.suite_id == SUITE_PQC:
-            peer_pk = mlkem.MLKEM768PublicKey.from_public_bytes(peer_pk_bytes)
-            shared_secret, kem_ct = peer_pk.encapsulate()
-            return shared_secret, kem_ct
+            if len(peer_pk_bytes) != 1184:
+                raise HandshakeError(f"Invalid ML-KEM-768 public key length: {len(peer_pk_bytes)} B (expected 1184 B)")
+            try:
+                peer_pk = mlkem.MLKEM768PublicKey.from_public_bytes(peer_pk_bytes)
+                shared_secret, kem_ct = peer_pk.encapsulate()
+                return shared_secret, kem_ct
+            except Exception as e:
+                raise HandshakeError(f"ML-KEM-768 encapsulation failed: {e}") from e
         else:
-            # Classical baseline: Bob generates ephemeral X25519 key, exchanges with Alice's PK
-            bob_ephemeral_sk = x25519.X25519PrivateKey.generate()
-            bob_ephemeral_pk_bytes = bob_ephemeral_sk.public_key().public_bytes_raw()
-            alice_pk = x25519.X25519PublicKey.from_public_bytes(peer_pk_bytes)
-            shared_secret = bob_ephemeral_sk.exchange(alice_pk)
-            # In classical mode, Bob's ephemeral public key is sent as the "ciphertext"
-            return shared_secret, bob_ephemeral_pk_bytes
+            if len(peer_pk_bytes) != 32:
+                raise HandshakeError(f"Invalid X25519 public key length: {len(peer_pk_bytes)} B (expected 32 B)")
+            try:
+                bob_ephemeral_sk = x25519.X25519PrivateKey.generate()
+                bob_ephemeral_pk_bytes = bob_ephemeral_sk.public_key().public_bytes_raw()
+                alice_pk = x25519.X25519PublicKey.from_public_bytes(peer_pk_bytes)
+                shared_secret = bob_ephemeral_sk.exchange(alice_pk)
+                return shared_secret, bob_ephemeral_pk_bytes
+            except Exception as e:
+                raise HandshakeError(f"X25519 key exchange failed: {e}") from e
 
     def decapsulate(self, my_sk: object, kem_ct_bytes: bytes) -> bytes:
         """
@@ -88,11 +96,21 @@ class CipherSuite:
         """
         if self.suite_id == SUITE_PQC:
             assert isinstance(my_sk, mlkem.MLKEM768PrivateKey)
-            return my_sk.decapsulate(kem_ct_bytes)
+            if len(kem_ct_bytes) != 1088:
+                raise HandshakeError(f"Invalid ML-KEM-768 ciphertext length: {len(kem_ct_bytes)} B (expected 1088 B)")
+            try:
+                return my_sk.decapsulate(kem_ct_bytes)
+            except Exception as e:
+                raise HandshakeError(f"ML-KEM-768 decapsulation failed: {e}") from e
         else:
             assert isinstance(my_sk, x25519.X25519PrivateKey)
-            bob_pk = x25519.X25519PublicKey.from_public_bytes(kem_ct_bytes)
-            return my_sk.exchange(bob_pk)
+            if len(kem_ct_bytes) != 32:
+                raise HandshakeError(f"Invalid X25519 ciphertext length: {len(kem_ct_bytes)} B (expected 32 B)")
+            try:
+                bob_pk = x25519.X25519PublicKey.from_public_bytes(kem_ct_bytes)
+                return my_sk.exchange(bob_pk)
+            except Exception as e:
+                raise HandshakeError(f"X25519 decapsulation failed: {e}") from e
 
     # --- Digital Signatures ---------------------------------------------------
 

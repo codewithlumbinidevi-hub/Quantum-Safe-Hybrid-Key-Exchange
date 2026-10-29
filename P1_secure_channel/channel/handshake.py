@@ -178,7 +178,7 @@ class AliceSession:
         self.client_hello_wire = pack_frame(MSG_CLIENT_HELLO, body)
         return self.client_hello_wire
 
-    def process_server_hello(self, body: bytes, raw_wire: bytes) -> Tuple[bytes, RecordLayer]:
+    def process_server_hello(self, body: bytes, raw_wire: Optional[bytes] = None) -> Tuple[bytes, RecordLayer]:
         """
         Process ServerHello frame, verify Bob's identity and signature, decapsulate secret,
         generate ClientAuth frame, and derive directional RecordLayer.
@@ -189,7 +189,7 @@ class AliceSession:
         if self.client_hello_wire is None:
             raise HandshakeError("Handshake not initialized (ClientHello not sent)")
 
-        self.server_hello_wire = raw_wire
+        self.server_hello_wire = raw_wire if (raw_wire and len(raw_wire) >= FRAME_HEADER_SIZE) else pack_frame(MSG_SERVER_HELLO, body)
         server_hello = ServerHello.deserialize(body)
 
         # 1. Validate version and suite
@@ -272,14 +272,14 @@ class BobSession:
         self.shared_secret: Optional[bytes] = None
         self.final_hash: Optional[bytes] = None
 
-    def process_client_hello(self, body: bytes, raw_wire: bytes) -> bytes:
+    def process_client_hello(self, body: bytes, raw_wire: Optional[bytes] = None) -> bytes:
         """
         Process ClientHello, encapsulate secret, sign server transcript, and return ServerHello frame.
 
         Returns:
             Wire bytes for ServerHello frame.
         """
-        self.client_hello_wire = raw_wire
+        self.client_hello_wire = raw_wire if (raw_wire and len(raw_wire) >= FRAME_HEADER_SIZE) else pack_frame(MSG_CLIENT_HELLO, body)
         client_hello = ClientHello.deserialize(body)
 
         # 1. Validate version, suite, and target
@@ -332,7 +332,7 @@ class BobSession:
         self.server_hello_wire = pack_frame(MSG_SERVER_HELLO, full_body)
         return self.server_hello_wire
 
-    def process_client_auth(self, body: bytes, raw_wire: bytes) -> RecordLayer:
+    def process_client_auth(self, body: bytes, raw_wire: Optional[bytes] = None) -> RecordLayer:
         """
         Process ClientAuth frame, verify Alice's signature, complete transcript binding,
         and derive directional RecordLayer.
@@ -343,7 +343,7 @@ class BobSession:
         if self.client_hello_wire is None or self.server_hello_wire is None:
             raise HandshakeError("Handshake out of sequence (ClientHello / ServerHello missing)")
 
-        self.client_auth_wire = raw_wire
+        self.client_auth_wire = raw_wire if (raw_wire and len(raw_wire) >= FRAME_HEADER_SIZE) else pack_frame(MSG_CLIENT_AUTH, body)
         client_auth = ClientAuth.deserialize(body)
 
         # 1. Verify Alice's signature over full transcript

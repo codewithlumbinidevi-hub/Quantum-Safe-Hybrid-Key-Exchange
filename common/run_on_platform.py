@@ -78,11 +78,14 @@ def main():
     budget = prof["mem_budget_mb"] * 2**20 if prof["mem_budget_mb"] else None
     while child.poll() is None:
         if prof["cores"] and pin == "pinned to 1 core":
-            for c in child.children(recursive=True):   # keep sub-processes on the same core
-                try:
-                    c.cpu_affinity(child.cpu_affinity())
-                except psutil.Error:
-                    pass
+            try:
+                for c in child.children(recursive=True):   # keep sub-processes on the same core
+                    try:
+                        c.cpu_affinity(child.cpu_affinity())
+                    except psutil.Error:
+                        pass
+            except psutil.Error:
+                pass
         peak = max(peak, tree_rss(child))
         if budget and peak > budget:
             status = "BUDGET_EXCEEDED"

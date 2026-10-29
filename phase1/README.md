@@ -1,5 +1,7 @@
 # Q-SHIELD-PQC: Quantum-Safe Hybrid Key Exchange & Universal Processor A/B Benchmarking
 
+> **Phase 1 Frozen Submission Snapshot**: Submitted for Qiskit Fall Fest 2026 (SRM University-AP) — Track 5 (PS-P1). This directory contains the complete, self-contained Phase 1 submission and is frozen. All commands are executed from `phase1/`.
+
 [![Qiskit](https://img.shields.io/badge/Qiskit-2.2.3-6929C4.svg?style=flat&logo=qiskit)](https://qiskit.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![NIST Standards](https://img.shields.io/badge/NIST%20PQC-FIPS%20203%20ML--KEM--768-963b43.svg?style=flat)](https://csrc.nist.gov/projects/post-quantum-cryptography)
@@ -39,7 +41,7 @@ The repository includes an auxiliary deterministic static-analysis scanner for c
 ## 📂 Mandated Repository Structure
 
 ```
-qff26/
+phase1/
 ├── README.md                      # Primary project overview, setup, and submission guide
 ├── main.ipynb                     # Reproducible end-to-end Jupyter execution notebook
 ├── requirements.txt               # Pinned dependencies with exact working versions
@@ -121,7 +123,7 @@ qff26/
 ```powershell
 # Clone repository
 git clone https://github.com/your-username/qff26.git
-cd qff26
+cd qff26/phase1
 
 # Install pinned Python dependencies
 pip install -r requirements.txt

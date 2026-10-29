@@ -23,12 +23,13 @@ wheels/
 .installed.cfg
 *.egg
 .pytest_cache/
+**/.pytest_cache/
 
 # Node / Frontend
 node_modules/
-frontend/node_modules/
+**/node_modules/
 dist/
-frontend/dist/
+**/dist/
 .npm
 *.log
 
@@ -46,3 +47,6 @@ Thumbs.db
 # Artifacts & scratch
 scratch/
 results/raw/
+**/results/raw/
+!phase1/results/raw/run_RUN-1A4FD150.csv
+!phase1/results/raw/run_RUN-504342C1.csv

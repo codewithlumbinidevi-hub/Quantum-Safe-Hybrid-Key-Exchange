@@ -114,8 +114,8 @@ export function ExportCenterPage() {
             All generated result files are fingerprinted with SHA-256 hashes immediately upon creation. To independently verify file integrity on any standard terminal:
           </p>
           <div className="p-3 rounded bg-stone-900 text-stone-100 font-mono text-xs overflow-x-auto space-y-1">
-            <div className="text-stone-400"># Navigate to project root</div>
-            <div>cd qff26</div>
+            <div className="text-stone-400"># Navigate to Phase 1 directory</div>
+            <div>cd phase1</div>
             <div className="text-stone-400 mt-2"># Verify all SHA-256 checksums</div>
             <div>sha256sum -c results/SHA256SUMS.txt</div>
           </div>

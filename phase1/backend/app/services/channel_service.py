@@ -392,8 +392,13 @@ class ChannelService:
                 trans_a.send(mutated_frame)
 
                 msg_type, body_bob, raw_ch = trans_b.recv_frame()
-                log.append(f"[!] Injected bit-flip into ClientHello at offset {len(mutated_frame) - 20}")
-                bob.process_client_hello(body_bob, raw_ch)
+                log.append(f"[!] Injected bit-flip into ClientHello KEM key at offset {len(mutated_frame) - 20}")
+                sh_frame = bob.process_client_hello(body_bob, raw_ch)
+                trans_b.send(sh_frame)
+
+                _, body_alice, raw_sh = trans_a.recv_frame()
+                log.append("[*] ServerHello returned; Alice verifying transcript binding and Bob signature")
+                alice.process_server_hello(body_alice, raw_sh)
                 raise RuntimeError("FAIL: Bit-flip in KEM public key was not rejected!")
 
             elif scenario == "bit_flip_kem_ct":
@@ -524,12 +529,30 @@ class ChannelService:
 
                 rec0 = rec_a.encrypt_record(b"Message 1")
                 rec1 = rec_a.encrypt_record(b"Message 2")
-                rec_b.decrypt_record(rec0)
-                rec_b.decrypt_record(rec1)
+                _, b0, _ = unpack_frame(rec0)
+                _, b1, _ = unpack_frame(rec1)
+                rec_b.decrypt_record(b0)
+                rec_b.decrypt_record(b1)
 
                 log.append("[!] Replaying old record 0 (sequence 0) after sequence 1 was consumed")
-                rec_b.decrypt_record(rec0)
+                rec_b.decrypt_record(b0)
                 raise RuntimeError("FAIL: Replayed record was accepted!")
+
+            elif scenario == "replay_handshake":
+                trans_a, trans_b = LoopbackTransport.create_pair()
+                alice = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=suite_id)
+                bob = BobSession("bob", bob_keys, "alice", bob_store)
+                run_handshake(alice, bob, trans_a, trans_b)
+
+                log.append("[*] First handshake completed; captured genuine ServerHello frame")
+                alice_new = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=suite_id)
+                alice_new.start_handshake()
+                log.append("[!] Initiating session 2 with fresh client_random; replaying session 1 ServerHello frame")
+
+                sh_old = alice.server_hello_wire
+                _, sh_body, sh_raw = unpack_frame(sh_old)
+                alice_new.process_server_hello(sh_body, sh_raw)
+                raise RuntimeError("FAIL: Replayed handshake was accepted!")
 
             elif scenario == "downgrade":
                 trans_a, trans_b = LoopbackTransport.create_pair()
@@ -577,6 +600,7 @@ class ChannelService:
                 "untrusted_identity": ("Trust Anchor Layer", "Constant-Time Identity Key Pinning Store"),
                 "identity_swap": ("Transcript Accumulator", "Cumulative Transcript Hash Binding"),
                 "replay_record": ("Record Layer", "Monotonic 64-bit Sequence Number Verification"),
+                "replay_handshake": ("Handshake Transcript Layer", "Fresh Ephemeral Nonce & Transcript Hash Binding"),
                 "downgrade": ("Protocol Coordinator", "Supported Cipher Suite Enforcement (0x0001, 0x0002)"),
             }
             target_layer, defense = layer_map.get(scenario, ("Security Subsystem", "Cryptographic Check"))

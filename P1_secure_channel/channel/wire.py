@@ -246,3 +246,4 @@ def unpack_record_header(buf: bytes) -> Tuple[int, int, int]:
         raise RecordError("Record header truncated")
     rec_type, seq_num, payload_len = struct.unpack(RECORD_HEADER_FORMAT, buf[:RECORD_HEADER_SIZE])
     return rec_type, seq_num, payload_len
+

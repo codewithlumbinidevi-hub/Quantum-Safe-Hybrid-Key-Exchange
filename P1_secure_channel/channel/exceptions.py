@@ -52,3 +52,4 @@ class SequenceNumberError(RecordError):
 class ReplayError(ChannelError):
     """Raised when an old handshake or record replay is detected."""
     pass
+

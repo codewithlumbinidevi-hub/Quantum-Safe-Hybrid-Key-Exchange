@@ -166,3 +166,4 @@ class CipherSuite:
         iv_s2c = expand(b"s2c:iv", 4)
 
         return DerivedKeys(k_c2s=k_c2s, k_s2c=k_s2c, iv_c2s=iv_c2s, iv_s2c=iv_s2c)
+

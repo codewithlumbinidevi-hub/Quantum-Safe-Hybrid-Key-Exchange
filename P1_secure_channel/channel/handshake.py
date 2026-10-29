@@ -431,3 +431,4 @@ def run_handshake(
     )
 
     return alice_record, bob_record, metrics
+

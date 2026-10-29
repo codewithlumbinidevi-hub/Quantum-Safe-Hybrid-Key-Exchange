@@ -68,3 +68,4 @@ class TranscriptAccumulator:
         h.update(server_hello_full_wire)
         h.update(client_auth_wire)
         return h.digest()
+

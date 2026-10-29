@@ -7,6 +7,7 @@ Write-Host " Launching Q-SHIELD-PQC Full-Stack Development Servers" -ForegroundC
 Write-Host "==================================================================" -ForegroundColor Cyan
 
 $root = $PSScriptRoot | Split-Path
+$env:PYTHONPATH = "$root;$root\.."
 
 Write-Host "`n[*] Starting FastAPI Backend at http://localhost:8000..." -ForegroundColor Yellow
 $backendJob = Start-Process -FilePath "python" -ArgumentList "-m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload" -WorkingDirectory $root -PassThru

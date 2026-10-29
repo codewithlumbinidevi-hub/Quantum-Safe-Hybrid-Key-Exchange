@@ -3,7 +3,7 @@ import {
   Shield, LayoutDashboard, Activity, KeyRound, Box,
   GitMerge, FlaskConical, Cpu, Layers, BarChart3, History,
   Download, BookOpen, Info, ChevronRight, ChevronDown,
-  ShieldCheck, Lock, Terminal, FileCheck2, Server, Radio
+  ShieldCheck, Lock, Terminal, FileCheck2, Server, Radio, ScanSearch
 } from 'lucide-react';
 
 export type PqcPage =
@@ -33,6 +33,7 @@ interface SidebarProps {
   activePage: PqcPage;
   onNavigate: (page: PqcPage) => void;
   hasExchangeResult?: boolean;
+  onSwitchToScanner?: () => void;
 }
 
 interface NavItem {
@@ -129,7 +130,7 @@ const PHASE1_SECTIONS: NavSection[] = [
   },
 ];
 
-export function PqcSidebar({ activePage, onNavigate }: SidebarProps) {
+export function PqcSidebar({ activePage, onNavigate, onSwitchToScanner }: SidebarProps) {
   // If active page is one of the Phase 1 items, expand phase 1 by default
   const isPhase1Active = !activePage.startsWith('channel-');
   const [isPhase1Expanded, setIsPhase1Expanded] = useState<boolean>(isPhase1Active);
@@ -283,6 +284,23 @@ export function PqcSidebar({ activePage, onNavigate }: SidebarProps) {
           )}
         </div>
       </nav>
+
+      {/* PS-P2 Scanner Navigation Button */}
+      {onSwitchToScanner && (
+        <div className="p-3 border-t border-[#E8E0D7] bg-[#F3EFE9]">
+          <button
+            onClick={onSwitchToScanner}
+            className="flex items-center justify-between w-full px-2.5 py-1.5 rounded-md text-left text-xs text-[#68615A] hover:bg-[#EAE4DC] transition-colors cursor-pointer"
+            title="Open PS-P2 Classical Cryptography AST Scanner"
+          >
+            <div className="flex items-center gap-2">
+              <ScanSearch size={14} className="text-[#963B43]" />
+              <span className="font-medium text-[11.5px]">PS-P2 Code Scanner</span>
+            </div>
+            <ChevronRight size={13} className="opacity-60" />
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

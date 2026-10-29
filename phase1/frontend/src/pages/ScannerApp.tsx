@@ -14,7 +14,11 @@ import { AboutPage } from './scanner/AboutPage';
 import { RepositoryScannerPage } from './scanner/RepositoryScannerPage';
 import type { ScanResult } from '../types/scanner';
 
-export function ScannerApp() {
+interface ScannerAppProps {
+  onSwitchToPqc?: () => void;
+}
+
+export function ScannerApp({ onSwitchToPqc }: ScannerAppProps = {}) {
   const [activePage, setActivePage] = useState<ScannerPage>('dashboard');
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
@@ -108,6 +112,15 @@ export function ScannerApp() {
             >
               TRACK 5 · PS-P2
             </span>
+            {onSwitchToPqc && (
+              <button
+                onClick={onSwitchToPqc}
+                className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded border hover:bg-[#EFECE6] transition-colors cursor-pointer"
+                style={{ borderColor: '#E8E1D8', color: '#68615A', background: '#EDE8E0' }}
+              >
+                <span>← Return to PS-P1 (Phase 1 & Phase 2)</span>
+              </button>
+            )}
           </div>
         </header>
 

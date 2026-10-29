@@ -128,6 +128,7 @@ export function PqcApp({ onSwitchToScanner }: PqcAppProps) {
         activePage={activePage}
         onNavigate={setActivePage}
         hasExchangeResult={exchangeResult !== null}
+        onSwitchToScanner={onSwitchToScanner}
       />
 
       {/* Main Content Area */}
@@ -137,6 +138,7 @@ export function PqcApp({ onSwitchToScanner }: PqcAppProps) {
           isBackendHealthy={isBackendHealthy}
           onRunQuickExchange={() => handleRunExchange()}
           isRunning={isExchangeRunning}
+          onSwitchToScanner={onSwitchToScanner}
         />
 
         {/* Global Phase 2 Status Bar */}

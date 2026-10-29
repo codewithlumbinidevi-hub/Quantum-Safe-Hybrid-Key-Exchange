@@ -282,3 +282,4 @@ We assume a full **Dolev-Yao network attacker**:
 2. **Identity Distribution**: Uses explicitly pinned public keys (Trust Anchors) rather than an automated X.509 PKI certificate hierarchy with revocation mechanisms (CRL/OCSP).
 3. **Stateless Replay Limitation**: Handshake replay protection relies on fresh ephemeral randoms generated per session. Stateless servers do not maintain persistent cross-session cache databases across server process reboots.
 4. **Side-Channel Hardening**: While vetted primitives from `cryptography` provide constant-time core operations, high-level Python code and socket framing are not hardened against physical microarchitectural side channels (e.g., cache-timing).
+

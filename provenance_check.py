@@ -26,25 +26,31 @@ def check_handshake_provenance():
     raw_csv = os.path.join(RESULTS_DIR, "raw_handshake_trials.csv")
     summary_csv = os.path.join(RESULTS_DIR, "handshake_results.csv")
 
-    raw_trials = {"PQC": [], "classical-baseline": []}
+    raw_trials = {}
     with open(raw_csv, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for r in reader:
             suite = r["suite"]
+            mode_lbl = r.get("local_or_network", "local (in-process)")
+            key = (suite, mode_lbl)
+            if key not in raw_trials:
+                raw_trials[key] = []
             ms = float(r["handshake_time_ms"])
             ns = int(ms * 1e6)
-            raw_trials[suite].append(ns)
+            raw_trials[key].append(ns)
 
     with open(summary_csv, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         summary_rows = list(reader)
 
-    # Check in-process runs
+    # Check both in-process and TCP loopback runs
     for row in summary_rows:
-        if row["local_or_network"] != "local (in-process)":
-            continue
         suite = row["mode"]
-        samples_ns = raw_trials[suite]
+        mode_lbl = row["local_or_network"]
+        key = (suite, mode_lbl)
+        if key not in raw_trials:
+            continue
+        samples_ns = raw_trials[key]
         stats = summarize(samples_ns)
 
         rep_med = float(row["median_handshake_ms"])
@@ -59,7 +65,7 @@ def check_handshake_provenance():
         assert math.isclose(rep_iqr, calc_iqr, abs_tol=1e-4), f"IQR mismatch in {suite}: rep {rep_iqr} vs calc {calc_iqr}"
         assert math.isclose(rep_p95, calc_p95, abs_tol=1e-4), f"p95 mismatch in {suite}: rep {rep_p95} vs calc {calc_p95}"
 
-        print(f"  [PROVENANCE OK] {suite} Handshake: Median={rep_med} ms, IQR={rep_iqr} ms, N={len(samples_ns)}")
+        print(f"  [PROVENANCE OK] {suite} Handshake ({mode_lbl}): Median={rep_med} ms, IQR={rep_iqr} ms, N={len(samples_ns)}")
 
 
 def check_payload_provenance():

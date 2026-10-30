@@ -86,12 +86,13 @@ def setup_identities(suite_id: int):
     return alice_keys, bob_keys, alice_store, bob_store
 
 
-def benchmark_suite_under_platform_d(suite_id: int, trials: int = 20) -> Dict:
+def benchmark_suite_under_platform_d(suite_id: int, trials: int = 100) -> Tuple[Dict, list]:
     suite_name = "PQC" if suite_id == SUITE_PQC else "classical-baseline"
     alice_keys, bob_keys, a_store, b_store = setup_identities(suite_id)
 
     print(f"\n[Platform D: Emulated WAN 50ms RTT / 1Mbps] Measuring {suite_name} (N={trials})...")
     samples_ns = []
+    raw_trials = []
 
     for trial in range(1, trials + 1):
         trans_a, trans_b = EmulatedNetworkTransport.create_pair(one_way_delay_ms=25.0, bandwidth_bps=1_000_000)
@@ -101,26 +102,36 @@ def benchmark_suite_under_platform_d(suite_id: int, trials: int = 20) -> Dict:
         t0 = time.perf_counter_ns()
         ra, rb, metrics = run_handshake(alice, bob, trans_a, trans_b)
         t1 = time.perf_counter_ns()
-        samples_ns.append(t1 - t0)
+        dur_ns = t1 - t0
+        samples_ns.append(dur_ns)
+        raw_trials.append({
+            "trial": trial,
+            "suite": suite_name,
+            "emulation": "emulated link (local, throttled)",
+            "handshake_time_ms": dur_ns / 1e6,
+            "total_bytes": metrics.total_bytes,
+            "success": 1,
+        })
 
     stats = summarize(samples_ns)
     print(f"  {suite_name} Platform D Latency: Median = {stats['median_ms']:.2f} ms | IQR = {stats['iqr_ms']:.2f} ms | Total Bytes = {metrics.total_bytes} B")
 
-    return {
+    summary = {
         "platform": "D",
         "mode": suite_name,
-        "emulation": "50ms RTT, 1Mbps WAN",
+        "emulation": "emulated link (local, throttled)",
         "trials": trials,
         "median_ms": round(stats["median_ms"], 2),
         "iqr_ms": round(stats["iqr_ms"], 2),
         "p95_ms": round(stats["p95_ms"], 2),
         "total_handshake_bytes": metrics.total_bytes,
     }
+    return summary, raw_trials
 
 
 def main():
-    pqc_res = benchmark_suite_under_platform_d(SUITE_PQC, trials=20)
-    cls_res = benchmark_suite_under_platform_d(SUITE_CLASSICAL, trials=20)
+    pqc_res, pqc_trials = benchmark_suite_under_platform_d(SUITE_PQC, trials=100)
+    cls_res, cls_trials = benchmark_suite_under_platform_d(SUITE_CLASSICAL, trials=100)
 
     out_csv = os.path.join(RESULTS_DIR, "platform_D_results.csv")
     with open(out_csv, "w", newline="", encoding="utf-8") as f:
@@ -130,7 +141,16 @@ def main():
         writer.writerow(pqc_res)
         writer.writerow(cls_res)
 
+    raw_csv = os.path.join(RESULTS_DIR, "raw_platform_D_trials.csv")
+    with open(raw_csv, "w", newline="", encoding="utf-8") as f:
+        fieldnames = ["trial", "suite", "emulation", "handshake_time_ms", "total_bytes", "success"]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for r in pqc_trials + cls_trials:
+            writer.writerow(r)
+
     print(f"\nPlatform D results written to: {out_csv}")
+    print(f"Platform D raw trials written to: {raw_csv}")
 
     # Generate Chart
     import matplotlib
@@ -150,7 +170,7 @@ def main():
         ax.text(bar.get_x() + bar.get_width() / 2.0, yval + 5, f"{med:.1f} ms", ha="center", va="bottom", fontweight="bold", fontsize=10)
 
     ax.set_ylabel("Handshake Completion Time (ms)", fontsize=11, fontweight="bold")
-    ax.set_title("Platform D: Handshake Latency under 50ms RTT & 1 Mbps WAN", fontsize=11, fontweight="bold", pad=12)
+    ax.set_title("Platform D: Handshake Latency under 50ms RTT & 1 Mbps WAN (N=100)", fontsize=11, fontweight="bold", pad=12)
     ax.grid(axis="y", linestyle="--", alpha=0.5)
 
     plt.tight_layout()

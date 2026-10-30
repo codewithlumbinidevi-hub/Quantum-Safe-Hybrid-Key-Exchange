@@ -319,31 +319,51 @@ def test_t6_untrusted_identity_rejected(suite_id):
 
 @pytest.mark.parametrize("suite_id", [SUITE_PQC, SUITE_CLASSICAL])
 def test_t7_identity_swap_rejected(suite_id):
-    """T7: Replaying Bob's genuine signature in a session naming Charlie -> rejected via transcript binding."""
+    """
+    T7: Identity-only swap attack via transcript binding.
+    Captures a legitimate Alice<->Bob handshake, then constructs a swapped ClientHello
+    differing ONLY in the sender_id identity field ("carol" vs "alice") while preserving
+    identical client_random and ephemeral KEM public key, and reusing Bob's genuine signature.
+    Signature verification MUST fail with SignatureError due to transcript binding.
+    """
     alice_keys, bob_keys, alice_store, bob_store = make_keypairs(suite_id)
 
     alice = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=suite_id)
     bob = BobSession("bob", bob_keys, "alice", bob_store)
 
     ch_frame = alice.start_handshake()
-    _, ch_body, _ = unpack_frame(ch_frame)
-    sh_frame = bob.process_client_hello(ch_body, ch_frame)
+    _, ch_body, ch_raw = unpack_frame(ch_frame)
+    sh_frame = bob.process_client_hello(ch_body, ch_raw)
 
-    # Charlie starts session
+    # Carol identity keypair and trust anchor pinning Bob
     if suite_id == SUITE_PQC:
-        charlie_keys = IdentityKeyPair.generate_mldsa("charlie")
+        carol_keys = IdentityKeyPair.generate_mldsa("carol")
     else:
-        charlie_keys = IdentityKeyPair.generate_ed25519("charlie")
+        carol_keys = IdentityKeyPair.generate_ed25519("carol")
 
-    charlie_store = TrustAnchorStore()
-    charlie_store.pin_identity("bob", bob_keys.public_bytes)
+    carol_store = TrustAnchorStore()
+    carol_store.pin_identity("bob", bob_keys.public_bytes)
 
-    charlie = AliceSession("charlie", charlie_keys, "bob", charlie_store, suite_id=suite_id)
-    charlie.start_handshake()
+    # Swapped ClientHello differs ONLY in sender_id; same randoms & KEM public key
+    ch_orig = ClientHello.deserialize(ch_body)
+    ch_swapped = ClientHello(
+        version=ch_orig.version,
+        suite_id=ch_orig.suite_id,
+        sender_id="carol",  # ONLY identity field differs
+        target_id=ch_orig.target_id,
+        client_random=ch_orig.client_random,  # identical random
+        kem_public_key=ch_orig.kem_public_key,  # identical KEM key
+    )
+    ch_swapped_frame = pack_frame(MSG_CLIENT_HELLO, ch_swapped.serialize())
 
-    _, sh_body, _ = unpack_frame(sh_frame)
+    carol = AliceSession("carol", carol_keys, "bob", carol_store, suite_id=suite_id)
+    carol.client_random = ch_orig.client_random
+    carol._kem_sk = alice._kem_sk
+    carol.client_hello_wire = ch_swapped_frame
+
+    _, sh_body, sh_raw = unpack_frame(sh_frame)
     with pytest.raises(SignatureError) as exc_info:
-        charlie.process_server_hello(sh_body, sh_frame)
+        carol.process_server_hello(sh_body, sh_raw)
     assert "signature" in str(exc_info.value).lower()
 
 
@@ -353,7 +373,14 @@ def test_t7_identity_swap_rejected(suite_id):
 
 @pytest.mark.parametrize("suite_id", [SUITE_PQC, SUITE_CLASSICAL])
 def test_t8_record_replay_rejected(suite_id):
-    """T8: Replaying an earlier application record -> rejected via sequence number monotonicity."""
+    """
+    T8 (a): Intra-session and cross-session record replay protection.
+    - Intra-session: Replaying an earlier application record in the same session is rejected
+      via sequence number monotonicity (SequenceNumberError).
+    - Cross-session: Replaying a valid record captured in session 1 into a fresh session 2 with
+      identical peer identities is rejected (InvalidTagError) because traffic keys and nonces
+      are unique per session.
+    """
     alice_keys, bob_keys, alice_store, bob_store = make_keypairs(suite_id)
     trans_a, trans_b = LoopbackTransport.create_pair()
     alice = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=suite_id)
@@ -375,31 +402,54 @@ def test_t8_record_replay_rejected(suite_id):
     plain_1, _ = rec_b.decrypt_record(body_1)
     assert plain_1 == msg_1
 
-    # Attacker replays frame 0!
+    # 1. Attacker replays frame 0 in the same session -> SequenceNumberError
     with pytest.raises(SequenceNumberError) as exc_info:
         rec_b.decrypt_record(body_0)
     assert "sequence number mismatch" in str(exc_info.value).lower() or "replay" in str(exc_info.value).lower()
 
+    # 2. Cross-session record replay: replay body_0 (seq=0) into fresh session 2 (expecting seq=0)
+    trans_a2, trans_b2 = LoopbackTransport.create_pair()
+    alice_2 = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=suite_id)
+    bob_2 = BobSession("bob", bob_keys, "alice", bob_store)
+    rec_a2, rec_b2, _ = run_handshake(alice_2, bob_2, trans_a2, trans_b2)
+
+    with pytest.raises(InvalidTagError):
+        rec_b2.decrypt_record(body_0)
+
 
 @pytest.mark.parametrize("suite_id", [SUITE_PQC, SUITE_CLASSICAL])
 def test_t8_handshake_replay_rejected(suite_id):
-    """T8: Replaying an old captured handshake against a fresh session -> rejected via freshness nonces."""
+    """
+    T8 (b): Handshake replay protection.
+    - Flight 2 replay: Replaying an old captured ServerHello against a fresh AliceSession is rejected
+      because Alice's fresh client_random does not match the signed transcript.
+    - Full handshake replay: Replaying a full captured handshake (old ClientHello + old ClientAuth)
+      against a fresh BobSession is rejected with SignatureError because Bob's fresh server_random
+      ensures the transcript signature in ClientAuth is invalid.
+    """
     alice_keys, bob_keys, alice_store, bob_store = make_keypairs(suite_id)
     alice_1 = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=suite_id)
     bob_1 = BobSession("bob", bob_keys, "alice", bob_store)
 
     ch_frame_old = alice_1.start_handshake()
-    _, ch_body_old, _ = unpack_frame(ch_frame_old)
-    sh_frame_old = bob_1.process_client_hello(ch_body_old, ch_frame_old)
+    _, ch_body_old, ch_raw_old = unpack_frame(ch_frame_old)
+    sh_frame_old = bob_1.process_client_hello(ch_body_old, ch_raw_old)
 
-    # Fresh session: Alice 2 generated a fresh client_random
-    bob_2 = BobSession("bob", bob_keys, "alice", bob_store)
+    _, sh_body_old, sh_raw_old = unpack_frame(sh_frame_old)
+    ca_frame_old, _ = alice_1.process_server_hello(sh_body_old, sh_raw_old)
+    _, ca_body_old, ca_raw_old = unpack_frame(ca_frame_old)
+
+    # 1. Replay old ServerHello to fresh AliceSession
     alice_2 = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=suite_id)
     alice_2.start_handshake()
-
-    _, sh_body_old, _ = unpack_frame(sh_frame_old)
     with pytest.raises(SignatureError):
-        alice_2.process_server_hello(sh_body_old, sh_frame_old)
+        alice_2.process_server_hello(sh_body_old, sh_raw_old)
+
+    # 2. Replay full captured handshake (old CH + old CA) against fresh BobSession
+    bob_fresh = BobSession("bob", bob_keys, "alice", bob_store)
+    sh_fresh = bob_fresh.process_client_hello(ch_body_old, ch_raw_old)
+    with pytest.raises(SignatureError):
+        bob_fresh.process_client_auth(ca_body_old, ca_raw_old)
 
 
 # ==============================================================================
@@ -426,7 +476,7 @@ def test_t9_algorithm_downgrade_rejected():
 
 
 # ==============================================================================
-# Robustness Extensions: Framing, Ordering, and Directional Keys
+# Robustness Extensions: Framing, Ordering, Chunk Stream Integrity, and Directional Keys
 # ==============================================================================
 
 def test_truncated_frame():
@@ -454,11 +504,94 @@ def test_reordered_records():
         rec_b.decrypt_record(body_1)
 
 
-def test_wrong_direction_key_use():
-    """Attempting to decrypt Alice's record using Alice's own read key -> InvalidTag."""
-    alice_keys, bob_keys, alice_store, bob_store = make_keypairs(SUITE_PQC)
+@pytest.mark.parametrize("suite_id", [SUITE_PQC, SUITE_CLASSICAL])
+def test_chunked_payload_stream_integrity(suite_id):
+    """
+    Message-stream integrity for chunked payloads:
+    - Dropped FINAL record: receiver detects incomplete message stream (is_final == False).
+    - Dropped middle chunk: raises SequenceNumberError (gap detected).
+    - Duplicated middle chunk: raises SequenceNumberError (replay detected).
+    - Reordered chunks: raises SequenceNumberError.
+    - Tampered chunk: raises InvalidTagError; plaintext of tampered record is NEVER released.
+
+    Plaintext release policy documentation:
+    In this prototype, RecordLayer decrypts on a per-record basis. If an application streams records,
+    chunks that successfully verify prior to a failure have passed AES-256-GCM authentication and are
+    delivered per-record to the caller; however, the multi-chunk message remains incomplete and cannot
+    be finalized without the authentic FINAL record.
+    For any record where the tag, AAD, or ciphertext is tampered, AES-256-GCM authentication is all-or-nothing:
+    InvalidTagError is raised and ZERO plaintext bytes are released.
+    """
+    alice_keys, bob_keys, alice_store, bob_store = make_keypairs(suite_id)
     trans_a, trans_b = LoopbackTransport.create_pair()
-    alice = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=SUITE_PQC)
+    alice = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=suite_id)
+    bob = BobSession("bob", bob_keys, "alice", bob_store)
+    rec_a, rec_b, _ = run_handshake(alice, bob, trans_a, trans_b)
+
+    # Payload spanning 3 chunks (chunk 0: CHUNK, chunk 1: CHUNK, chunk 2: FINAL)
+    chunk_size = 64 * 1024
+    payload_data = b"ChunkA:" * (chunk_size // 7) + b"ChunkB:" * (chunk_size // 7) + b"ChunkC:FinalEnd"
+    frames = rec_a.encrypt_payload(payload_data, chunk_size=chunk_size)
+    assert len(frames) == 3
+
+    bodies = [unpack_frame(f)[1] for f in frames]
+
+    # Scenario 1: Dropped FINAL record -> receiver reports incomplete message
+    received_chunks = []
+    is_message_complete = False
+    for b in bodies[:2]:  # Only deliver chunks 0 and 1; chunk 2 (FINAL) is dropped
+        plain, is_final = rec_b.decrypt_record(b)
+        received_chunks.append(plain)
+        if is_final:
+            is_message_complete = True
+    assert not is_message_complete, "Receiver must report incomplete message when FINAL record is dropped"
+    assert len(received_chunks) == 2
+
+    # Scenario 2: Dropped middle chunk (chunk 0 then chunk 2 directly)
+    alice_s2 = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=suite_id)
+    bob_s2 = BobSession("bob", bob_keys, "alice", bob_store)
+    rec_a2, rec_b2, _ = run_handshake(alice_s2, bob_s2, trans_a, trans_b)
+    frames2 = rec_a2.encrypt_payload(payload_data, chunk_size=chunk_size)
+    bodies2 = [unpack_frame(f)[1] for f in frames2]
+
+    rec_b2.decrypt_record(bodies2[0])  # seq 0 ok
+    with pytest.raises(SequenceNumberError) as exc_info:
+        rec_b2.decrypt_record(bodies2[2])  # seq 2 delivered when seq 1 expected
+    assert "expected 1, got 2" in str(exc_info.value)
+
+    # Scenario 3: Duplicated middle chunk (chunk 0, chunk 1, chunk 1)
+    alice_s3 = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=suite_id)
+    bob_s3 = BobSession("bob", bob_keys, "alice", bob_store)
+    rec_a3, rec_b3, _ = run_handshake(alice_s3, bob_s3, trans_a, trans_b)
+    frames3 = rec_a3.encrypt_payload(payload_data, chunk_size=chunk_size)
+    bodies3 = [unpack_frame(f)[1] for f in frames3]
+
+    rec_b3.decrypt_record(bodies3[0])
+    rec_b3.decrypt_record(bodies3[1])
+    with pytest.raises(SequenceNumberError) as exc_info:
+        rec_b3.decrypt_record(bodies3[1])  # duplicated chunk 1
+    assert "expected 2, got 1" in str(exc_info.value)
+
+    # Scenario 4: Tampered middle chunk -> InvalidTagError; zero plaintext returned
+    alice_s4 = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=suite_id)
+    bob_s4 = BobSession("bob", bob_keys, "alice", bob_store)
+    rec_a4, rec_b4, _ = run_handshake(alice_s4, bob_s4, trans_a, trans_b)
+    frames4 = rec_a4.encrypt_payload(payload_data, chunk_size=chunk_size)
+    bodies4 = [unpack_frame(f)[1] for f in frames4]
+
+    rec_b4.decrypt_record(bodies4[0])  # verified chunk 0 is delivered
+    bad_chunk1 = bytearray(bodies4[1])
+    bad_chunk1[-5] ^= 0x01  # mutate ciphertext/tag
+    with pytest.raises(InvalidTagError):
+        rec_b4.decrypt_record(bytes(bad_chunk1))
+
+
+@pytest.mark.parametrize("suite_id", [SUITE_PQC, SUITE_CLASSICAL])
+def test_wrong_direction_key_use(suite_id):
+    """Attempting to decrypt Alice's record using Alice's own read key -> InvalidTag."""
+    alice_keys, bob_keys, alice_store, bob_store = make_keypairs(suite_id)
+    trans_a, trans_b = LoopbackTransport.create_pair()
+    alice = AliceSession("alice", alice_keys, "bob", alice_store, suite_id=suite_id)
     bob = BobSession("bob", bob_keys, "alice", bob_store)
 
     rec_a, rec_b, _ = run_handshake(alice, bob, trans_a, trans_b)

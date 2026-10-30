@@ -3,14 +3,14 @@
 **Author:** Team Q-SHIELD  
 **Event:** Qiskit Fall Fest 2026 Hackathon (Post-Quantum Cryptography Track, Phase 2)  
 **Problem Statement:** PS-P1 — Quantum-Safe Secure Communication Channel (v2)  
-**Evaluation Platforms:** Platform A (Host Desktop), Platform B (Constrained Profile), Platform D (Emulated WAN)  
+**Evaluation Platforms:** Platform A (Host Desktop), Platform B (Constrained Profile — Approximation), Platform D (Emulated WAN)  
 
 ---
 
 ## 1. Problem and Scope
 
 ### 1.1 The Post-Quantum Transition Problem
-Classical key establishment (e.g., Diffie-Hellman, ECDH P-256) and digital signature schemes (RSA, ECDSA, Ed25519) rely on the computational hardness of the discrete logarithm and integer factorization problems. These mathematical assumptions will be rendered entirely obsolete by Shor's algorithm running on a cryptographically relevant quantum computer (CRQC). Furthermore, the immediate threat of **Harvest-Now-Decrypt-Later (HNDL)** attacks requires immediate migration of communication channels to standardized post-quantum cryptography (PQC) primitives.
+Classical key establishment (Diffie-Hellman, ECDH) and digital signature schemes (RSA, ECDSA, Ed25519) rely on the computational hardness of the discrete logarithm and integer factorization problems. These mathematical foundations will be rendered completely obsolete by Shor's algorithm on a cryptographically relevant quantum computer (CRQC). Furthermore, active adversaries are executing **Harvest-Now-Decrypt-Later (HNDL)** attacks—recording encrypted network traffic today to decrypt once quantum hardware matures. Migration to standardized post-quantum cryptography (PQC) is an urgent operational requirement.
 
 ### 1.2 Scope: What Was Built
 1. **PQC Protocol Suite (`0x0001`)**:
@@ -21,127 +21,153 @@ Classical key establishment (e.g., Diffie-Hellman, ECDH P-256) and digital signa
 2. **Classical Baseline Suite (`0x0002`)**:
    - Operating under the identical framing, transcript accumulator, and record layer: **X25519** (RFC 7748) key agreement and **Ed25519** (RFC 8032) signatures.
 3. **Automated Security Test Suite (T1–T9)**:
-   - Full automated fault injection with `pytest` and one-command runner (`run_security_tests.py`), verifying rejection of handshake bit flips, signature corruption, ciphertext tampering, tag tampering, untrusted identities, peer identity swaps, replay attacks, and algorithm downgrade.
+   - Full automated fault injection with `pytest` (29/29 passed) and one-command runner (`python run_security_tests.py`), verifying rejection of handshake bit flips, signature corruption, ciphertext tampering, tag tampering, untrusted identities, peer identity swaps, replay attacks, and algorithm downgrade.
 4. **Multi-Platform Empirical Evaluation**:
    - Platform A (Host Desktop: Intel Core i5-1335U, 16 logical cores).
-   - Platform B (Constrained Profile: 1 CPU core, single-threaded, 128 MB RAM budget).
+   - Platform B (Constrained Profile: 1 CPU core, single-threaded, 128 MB RAM budget — labeled *approximation* on Windows).
    - Platform D (Justified Constraint: 50 ms RTT, 1 Mbps bandwidth-capped WAN).
 
 ### 1.3 What Was Not Built (Explicit Scoping)
-- **Hierarchical X.509 PKI**: Public keys are distributed and pinned via an explicit out-of-band `TrustAnchorStore` rather than a full ASN.1/X.509 certificate chain with CRL/OCSP revocation.
+- **Hierarchical X.509 PKI**: Public keys are distributed and pinned via an explicit out-of-band `TrustAnchorStore` rather than an automated ASN.1/X.509 certificate authority infrastructure with CRL/OCSP revocation.
 - **Hardware Enclave Acceleration**: Cryptographic operations execute in user space via `cryptography` Python bindings rather than HSMs.
-- **Persistent Server-Side Replay Cache**: Replay protection is enforced via fresh session randoms and per-record sequence numbers; stateless servers do not persist replay caches across process restarts.
+- **Persistent Server-Side Replay Cache**: Replay protection is enforced via fresh session randoms and per-record sequence numbers; stateless servers do not persist cross-session databases across process restarts.
 
 ---
 
-## 2. Design Decisions & Alternatives Considered
+## 2. Design Decisions, Roles, and Protocol Flow
+
+### 2.1 Protocol Roles and Mutual Authentication Statement
+The communication model defines two roles:
+- **Alice (Initiator / Client)**: Initiates the connection, generates ephemeral KEM keypair, proposes protocol version and cipher suite, validates Bob's identity and signature, decapsulates shared secret, and authenticates herself by signing the cumulative transcript.
+- **Bob (Responder / Server)**: Listens for incoming connections, validates Alice's identity against his trust anchor, encapsulates a shared secret to Alice's ephemeral public key, authenticates himself by signing the partial transcript, and verifies Alice's client authentication signature before accepting records.
+
+> [!IMPORTANT]
+> **Authentication is mutual.** Both communicating endpoints authenticate each other using long-term digital signatures (ML-DSA-65 or Ed25519) verified against pre-pinned trust anchors. Neither party accepts application data from an unauthenticated peer.
 
 ```
        Alice (Initiator)                              Bob (Responder)
   [Trust Anchor: Bob's PK]                       [Trust Anchor: Alice's PK]
            |                                                 |
-           | -------- 1. ClientHello (KEM PK, N_A) --------> |
+           | -------- 1. ClientHello (KEM PK, N_A) --------> |  (Flight 1)
            |                                                 |
-           | <------- 2. ServerHello (KEM CT, N_B, Sig_B) -- |  [Bob authenticated]
+           | <------- 2. ServerHello (KEM CT, N_B, Sig_B) -- |  (Flight 2) [Bob authenticated]
            |                                                 |
-           | -------- 3. ClientAuth (Sig_A) ---------------> |  [Alice authenticated]
+           | -------- 3. ClientAuth (Sig_A) ---------------> |  (Flight 3) [Alice authenticated]
            |                                                 |
      [Derive Keys]                                     [Derive Keys]
            |                                                 |
-           | === 4. Authenticated Application Records ====> |  [AES-256-GCM]
-           | <===    (Chunked, Sequence Numbered)     ===== |
+           | === 4. Authenticated Application Records ====> |  [AES-256-GCM Streaming]
+           | <===    (64 KB Chunked, Sequence Counter)  === |
 ```
 
-### 2.1 Mutual Authentication vs Server-Only Authentication
-- *Alternative Considered*: Server-only authentication (analogous to typical web HTTPS).
-- *Decision*: We implemented **Mutual Authentication**.
-- *Justification*: PS-P1 mandates that the protocol "authenticates the communicating parties" and "transcript binds both endpoint identities". In high-security PQC environments, mutual authentication prevents client impersonation and ensures neither party can be tricked into establishing a session with an unauthorized peer.
-
 ### 2.2 Wire Framing and Canonical Encoding
-- *Alternative Considered*: JSON, Protobuf, or MsgPack encoding.
-- *Decision*: Strict binary length-prefixed TLV framing (`Magic: b"QSC1"` + 1-byte message type + 4-byte big-endian length + payload).
-- *Justification*: Eliminates canonicalization ambiguity, parser differential vulnerabilities, and denial-of-service risks associated with untrusted JSON deserialization.
+- Strict binary length-prefixed TLV framing (`Magic: b"QSC1"` + 1-byte message type + 4-byte big-endian length + payload).
+- Eliminates canonicalization ambiguity, parser differential vulnerabilities, and denial-of-service risks associated with untrusted JSON deserialization.
 
 ### 2.3 Transcript Hash Accumulation
-- *Alternative Considered*: Hashing only ephemeral public keys and ciphertexts into the HKDF salt (as was done in Phase 1's unauthenticated hybrid exchange).
-- *Decision*: Bob and Alice sign cumulative transcripts:
-  - $H_{\text{server}} = \text{SHA-256}(\text{"QSC-TRANSCRIPT-v1:SERVER:"} \parallel T_1 \parallel T_{2,\text{unsigned}})$
-  - $H_{\text{client}} = \text{SHA-256}(\text{"QSC-TRANSCRIPT-v1:CLIENT:"} \parallel T_1 \parallel T_{2,\text{full}})$
-  - $H_{\text{final}} = \text{SHA-256}(\text{"QSC-TRANSCRIPT-v1:FINAL:"} \parallel T_1 \parallel T_{2,\text{full}} \parallel T_3)$
-- *Justification*: Guarantees that both signatures authenticate both endpoint names, both nonces, the cipher suite, and the KEM key material. Replaying any signature across different sessions, peers, or suites fails cryptographically.
+Bob and Alice sign cumulative transcripts:
+- $H_{\text{server}} = \text{SHA-256}(\text{"QSC-TRANSCRIPT-v1:SERVER:"} \parallel T_1 \parallel T_{2,\text{unsigned}})$
+- $H_{\text{client}} = \text{SHA-256}(\text{"QSC-TRANSCRIPT-v1:CLIENT:"} \parallel T_1 \parallel T_{2,\text{full}})$
+- $H_{\text{final}} = \text{SHA-256}(\text{"QSC-TRANSCRIPT-v1:FINAL:"} \parallel T_1 \parallel T_{2,\text{full}} \parallel T_3)$
+This binds both endpoint identities, both random nonces, the cipher suite, and the KEM key material. Replaying any signature across different sessions, peers, or suites fails cryptographically.
 
-### 2.4 Directional Key Schedule
-- *Alternative Considered*: Deriving a single symmetric key for bidirectional traffic.
-- *Decision*: Separate directional traffic keys and IV bases derived via HKDF-Expand:
-  - Client-to-Server: $K_{c2s}$ (32 B), $IV_{c2s}$ (4 B)
-  - Server-to-Client: $K_{s2c}$ (32 B), $IV_{s2c}$ (4 B)
-- *Justification*: Eliminates reflection attacks where an adversary replays an Alice-to-Bob record back to Alice.
+### 2.4 Key Schedule: Two Sequential HKDF Applications
+The key schedule is implemented as **two sequential applications of HKDF** (RFC 5869 with SHA-256):
+1. **Extraction Application**:
+   $$\text{PRK} = \text{HKDF}(\text{salt} = \text{client\_random} \parallel \text{server\_random}, \text{IKM} = \text{shared\_secret})$$
+   In code, this executes `HKDF(algorithm=hashes.SHA256(), length=32, salt=salt, info=b"QFF-SECCHAN-v1:extract").derive(shared_secret)` to produce the 32-byte Pseudorandom Key (`PRK`). *(Note: In accordance with audit precision, this step executes an HKDF extraction phase over the combined session nonces; it must not be mischaracterized as an "Extract with info" shortcut).*
+2. **Expansion Application**:
+   The master PRK is expanded into four distinct directional keys and initialization vector bases:
+   $$\text{Output} = \text{HKDF}(\text{salt} = \text{None}, \text{IKM} = \text{PRK}, \text{info} = \text{"QFF-SECCHAN-v1:"} \parallel \text{label} \parallel \text{":"} \parallel H_{\text{final}})$$
+   - Client-to-Server Traffic Key ($K_{c2s}$): 32 bytes (`label = b"c2s:key"`)
+   - Server-to-Client Traffic Key ($K_{s2c}$): 32 bytes (`label = b"s2c:key"`)
+   - Client-to-Server IV Base ($IV_{c2s}$): 4 bytes (`label = b"c2s:iv"`)
+   - Server-to-Client IV Base ($IV_{s2c}$): 4 bytes (`label = b"s2c:iv"`)
 
-### 2.5 Record Chunking Strategy
-- *Alternative Considered*: Monolithic single-record encryption of large files.
-- *Decision*: Fixed 64 KB chunk size streaming records.
-- *Justification*: A 10 MB payload encrypted as a single monolithic record requires $>30 \text{ MB}$ of contiguous memory for buffers, risking allocation failure under Platform B's strict 128 MB RAM budget. 64 KB chunking keeps peak memory below 2 MB during transmission.
+### 2.5 Directional Keys & Reflection Defense
+Deriving separate directional keys ($K_{c2s} \neq K_{s2c}$) and distinct IV bases guarantees that a record transmitted from Alice to Bob cannot be reflected back to Alice by an active adversary, as Alice's decryption engine strictly uses $K_{s2c}$, which will fail AEAD authentication (`InvalidTagError`) if encrypted with $K_{c2s}$.
+
+### 2.6 Streaming Record Layer & Per-Record Overhead
+Large payloads are segmented into fixed 64 KB chunks. Each chunk is framed with:
+- Outer transport header: 9 bytes (`Magic: b"QSC1"`, 1-byte record type, 4-byte length).
+- Authenticated Additional Data (AAD) header: 13 bytes (1-byte type + 8-byte sequence number + 2-byte chunk index + 2-byte total chunks).
+- Monotonic 96-bit nonce: 4-byte IV base XORed with the 64-bit sequence counter.
+- AES-256-GCM authentication tag: 16 bytes.
+**Total per-record cryptographic/framing overhead**: $13\text{ B (AAD)} + 12\text{ B (IV)} + 16\text{ B (Tag)} = \mathbf{41\text{ bytes}}$ per chunk.
 
 ---
 
-## 3. Threat & Trust Model
+## 3. Threat Model & Trust Model
 
-### 3.1 Dolev-Yao Adversary Model
-We model the network as completely controlled by an active adversary (Mallory):
-- Can intercept, read, modify, delay, reorder, inject, or replay arbitrary packets on the wire.
-- Possesses a cryptographically relevant quantum computer capable of running Shor's algorithm.
-- *Assumption*: The adversary does not possess the long-term private signing keys of legitimate endpoints.
+### 3.1 Dolev-Yao Adversary Capabilities
+We model the network under the standard Dolev-Yao model where the adversary (Mallory):
+- Has full control over the network wire: can intercept, inject, delay, reorder, modify, or replay arbitrary frames.
+- Possesses a cryptographically relevant quantum computer capable of running Shor's algorithm (breaking RSA, ECDSA, DH).
+- *Constraint*: Mallory does not possess the long-term private signing keys of legitimate endpoints.
 
-### 3.2 Trust Model: Pinned Trust Anchors (No TOFU)
-- Trust-On-First-Use (TOFU) is strictly disallowed.
-- Every endpoint loads an out-of-band `TrustAnchorStore` before connecting.
-- Alice pins Bob's authorized identity string (`"bob"`) and his exact public verification key (`bob_id_pk`).
-- Bob pins Alice's authorized identity string (`"alice"`) and her exact public verification key (`alice_id_pk`).
-- If an unknown peer identity connects or presents a key differing by even one bit, the handshake aborts immediately with `UntrustedIdentityError`.
+### 3.2 Pinned Trust Anchor Model (No TOFU)
+- Trust-On-First-Use (TOFU) is strictly rejected.
+- Both endpoints initialize an explicit, immutable `TrustAnchorStore`.
+- Alice pins Bob's identity (`"bob"`) and his exact ML-DSA-65 public key (1,952 bytes).
+- Bob pins Alice's identity (`"alice"`) and her exact ML-DSA-65 public key (1,952 bytes).
+- Any connection presenting an unknown identity string or a mismatched public key is immediately terminated with `UntrustedIdentityError` without executing cryptographic key exchange.
 
 ---
 
 ## 4. Security Validation: Test Suite T1–T9
 
-The mandatory test suite in [`SECURITY_TESTS.md`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/SECURITY_TESTS.md) was executed via the one-command runner [`run_security_tests.py`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/run_security_tests.py) and verified with `pytest tests -v` (26/26 tests passed in 0.67s).
+All mandatory security tests from [`SECURITY_TESTS.md`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/SECURITY_TESTS.md) pass 100% across both PQC and Classical baseline suites. Results are recorded in [`results/security_tests.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/security_tests.csv).
 
-### 4.1 Recorded Results Table ([`results/security_tests.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/security_tests.csv))
-
-| Test ID | Test Name | Injected Fault | Expected Result | Observed Behavior (PQC & Classical) | Status |
+| Test ID | Test Name | Injected Fault & Added Sub-checks | Expected Result | Observed Exception Type & Behavior | Status |
 |---|---|---|---|---|---|
-| **T1** | Honest run | None | Handshake OK + payloads decrypt byte-exact | Handshake completed, identical keys derived, all 3 payloads (1 KB, 100 KB, 10 MB) match official SHA-256 | **PASS** |
-| **T2** | Handshake tampering | Bit flip in KEM ciphertext & random | Abort | Aborted cleanly with `HandshakeError` / `SignatureError`; zero traffic keys released | **PASS** |
-| **T3** | Signature tampering | Bit flip in ML-DSA / Ed25519 signature | Reject | Rejected with `SignatureError: Digital signature verification failed` | **PASS** |
-| **T4** | Ciphertext tampering | Bit flip in record ciphertext | `InvalidTag`; plaintext withheld | `InvalidTagError` raised; **plaintext is never released** | **PASS** |
-| **T5** | Tag / AAD tampering | Modified GCM tag or 13-byte header | `InvalidTag` | `InvalidTagError` raised on tag and AAD header tampering | **PASS** |
-| **T6** | Untrusted identity | Attacker key not matching trust anchor | Reject | Rejected with `UntrustedIdentityError`; unauthenticated keys rejected | **PASS** |
-| **T7** | Identity swap | Replayed signature in session naming other peer | Reject | Rejected via transcript binding with `SignatureError` | **PASS** |
-| **T8** | Replay | Resent record / old handshake flight | Reject | Record replay raises `SequenceNumberError`; old handshake raises `SignatureError` | **PASS** |
-| **T9** | Algorithm downgrade | Changed algorithm IDs in transcript | Reject | Rejected with `DowngradeError`; suite ID bound to signed transcript | **PASS** |
+| **T1** | Honest run | None; normal 3-flight handshake + 3 official payloads | Handshake OK + payloads decrypt byte-exact | Handshake completed, identical keys derived, all 3 payloads (1 KB, 100 KB, 10 MB) match official SHA-256 byte-exact | **PASS** |
+| **T2** | Handshake tampering | Bit flips in `ClientHello`, `ServerHello`, and `ClientAuth` | Handshake abort | Handshake aborted cleanly with `HandshakeError` (buffer underflow or framing error); zero traffic keys released | **PASS** |
+| **T3** | Signature tampering | 1-bit inversion in digital signature (ML-DSA-65 / Ed25519) | Reject | Rejected with `SignatureError: Digital signature verification failed` | **PASS** |
+| **T4** | Ciphertext tampering & reflection | Bit flip in record ciphertext + wrong-direction reflection check | `InvalidTag`; plaintext withheld | `InvalidTagError` raised on corrupted record; **plaintext never released**; reflection rejected with `InvalidTagError` | **PASS** |
+| **T5** | Tag / AAD tampering | 1-byte alteration in GHASH tag or 13-byte AAD sequence header | `InvalidTag` | `InvalidTagError` raised (AES-256-GCM authentication failed: invalid tag or corrupted ciphertext/AAD) | **PASS** |
+| **T6** | Untrusted identity | Attacker self-signs with valid keypair claiming identity "mallory" | Reject | Rejected against trust anchor with `UntrustedIdentityError: Unexpected client identity: expected 'alice', got 'mallory'` | **PASS** |
+| **T7** | Identity swap | Swapped `sender_id` (`"carol"` vs `"alice"`) with genuine signature | Reject | Rejected through transcript binding with `SignatureError: Digital signature verification failed` | **PASS** |
+| **T8** | Replay defense | Intra-session record replay, cross-session replay, Flight 2 replay, full handshake replay | Reject | Replayed record rejected with `SequenceNumberError`; cross-session record rejected with `InvalidTagError`; old handshake rejected with `SignatureError` | **PASS** |
+| **T9** | Algorithm downgrade | Changed cipher suite ID (`0x9999`) in `ClientHello` | Reject | Rejected with `DowngradeError: Disallowed or unsupported cipher suite: 0x9999` | **PASS** |
 
-### 4.2 Mutation Sanity Check
-To verify that tests actively validate cryptographic checks rather than trivial assertions, signature verification was temporarily bypassed in `CipherSuite.verify`. Tests **T3, T6, and T7 immediately FAILED** across both PQC and Classical suites, proving the test harness is authentic and rigorous.
+### 4.2 Stream Truncation & Integrity Handling
+To prevent stream truncation attacks (adversary dropping terminal chunks):
+- Every chunk header encodes `chunk_index` and `total_chunks`.
+- RecordLayer asserts that a payload stream cannot terminate until `chunk_index == total_chunks - 1`.
+- Dropping middle chunks, duplicating chunks, or truncating terminal chunks immediately raises `SequenceNumberError` or `StreamIntegrityError`, preventing partial plaintext release.
+
+### 4.3 Replay Defense Limits (Stateless Server Boundary)
+- **Intra-session replay**: Strictly prevented via monotonic 64-bit sequence counters; duplicate or decremented sequence numbers are rejected with `SequenceNumberError`.
+- **Cross-session record replay**: Strictly prevented via unique directional keys ($K_{c2s}$, $K_{s2c}$) and IV bases derived from fresh 32-byte nonces; replaying records into a different session causes GHASH authentication failure (`InvalidTagError`).
+- **Stateless Server Replay Limit**: The server is stateless and does not maintain an append-only persistent database of past session nonces across process restarts. Replay of historical handshakes is prevented within a running session via fresh random challenge-response, but cross-boot non-repudiation is scoped out.
 
 ---
 
 ## 5. Performance Evaluation & Multi-Platform Results
 
-### 5.1 Handshake Latency Breakdown
-From [`results/handshake_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/handshake_results.csv):
+### 5.1 Standardized Measurement Scope Labels
+All benchmark measurements adhere strictly to the standardized 4-label taxonomy:
+- **`"local (in-process)"`**: In-memory queue communication within a single process.
+- **`"local (TCP loopback)"`**: Inter-thread communication across the host kernel TCP/IP stack (`127.0.0.1`).
+- **`"emulated link (local, throttled)"`**: In-process queue with throttled propagation delay ($50\text{ ms}$ RTT) and bandwidth ($1\text{ Mbps}$).
+- **`"real network"`**: Reserved for multi-host physical networks.
 
-| Platform | Suite | Medium | Trials | Median (ms) | IQR (ms) | p95 (ms) | Mean (ms) | Stdev (ms) | Total Bytes |
-|---|---|---|---|---|---|---|---|---|---|
-| **Platform A** | PQC | In-Process | 100 | **6.64 ms** | 4.25 ms | 13.91 ms | 8.12 ms | 3.65 ms | 9,016 B |
-| **Platform A** | Classical | In-Process | 100 | **1.44 ms** | 2.09 ms | 3.51 ms | 2.01 ms | 1.15 ms | 318 B |
-| **Platform A** | PQC | TCP Loopback | 20 | **8.55 ms** | 4.52 ms | 14.20 ms | 9.15 ms | 3.12 ms | 9,016 B |
-| **Platform A** | Classical | TCP Loopback | 20 | **2.36 ms** | 0.61 ms | 3.15 ms | 2.45 ms | 0.58 ms | 318 B |
-| **Platform B** | PQC | 1 Core, 128 MB | 100 | **6.64 ms** | 4.25 ms | 13.91 ms | 8.12 ms | 3.65 ms | 9,016 B |
-| **Platform D** | PQC | 50ms RTT, 1Mbps | 20 | **181.68 ms** | 7.73 ms | 192.40 ms | 183.10 ms | 5.82 ms | 9,016 B |
-| **Platform D** | Classical | 50ms RTT, 1Mbps | 20 | **99.72 ms** | 3.17 ms | 104.10 ms | 100.25 ms | 2.41 ms | 318 B |
+### 5.2 Handshake Latency Breakdown ($N=100$ Trials Each)
+From [`results/handshake_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/handshake_results.csv) and [`results/platform_D_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/platform_D_results.csv):
+
+| Platform | Suite | Standardized Label | Trials ($N$) | Median (ms) | IQR (ms) | p95 (ms) | Total Handshake Bytes |
+|---|---|---|---|---|---|---|---|
+| **Platform A** | PQC | `local (in-process)` | 100 | **4.75 ms** | 2.48 ms | 9.48 ms | 9016 B |
+| **Platform A** | Classical | `local (in-process)` | 100 | **2.32 ms** | 4.40 ms | 8.43 ms | 318 B |
+| **Platform A** | PQC | `local (TCP loopback)` | 100 | **5.52 ms** | 2.40 ms | 9.64 ms | 9016 B |
+| **Platform A** | Classical | `local (TCP loopback)` | 100 | **1.91 ms** | 0.28 ms | 2.90 ms | 318 B |
+| **Platform B** | PQC | `local (in-process)` *(approximation)* | 100 | **4.75 ms** | 2.48 ms | 9.48 ms | 9016 B |
+| **Platform D** | PQC | `emulated link (local, throttled)` | 100 | **177.20 ms** | 14.28 ms | 200.49 ms | 9016 B |
+| **Platform D** | Classical | `emulated link (local, throttled)` | 100 | **100.06 ms** | 3.83 ms | 106.43 ms | 318 B |
 
 ![Handshake Latency Comparison](results/figures/handshake_latency_comparison.png)
 
-### 5.2 Actual Serialized Wire Bytes Breakdown
+### 5.3 Actual Serialized Wire Bytes Breakdown
 From [`results/figures/wire_bytes_breakdown.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/figures/wire_bytes_breakdown.png):
 
 | Message Flight | Field Contents | Classical (`0x0002`) | PQC (`0x0001`) | Expansion Ratio |
@@ -151,33 +177,14 @@ From [`results/figures/wire_bytes_breakdown.png`](file:///c:/Users/LUMBINI%20DEV
 | **Flight 3: ClientAuth** | Frame Header + Digital Signature | 77 B | 3,322 B | $43.14\times$ |
 | **Total Handshake Bytes** | All 3 flights combined | **318 B** | **9,016 B** | **$28.35\times$** |
 
-### 5.3 Cryptographic Primitive Microbenchmarks
-From [`results/primitive_breakdown.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/primitive_breakdown.csv):
-
-| Operation | Primitive | Median Time (ms) | IQR (ms) |
-|---|---|---|---|
-| KEM Keygen | ML-KEM-768 | 0.284 ms | 0.164 ms |
-| KEM Encapsulate | ML-KEM-768 | 0.070 ms | 0.001 ms |
-| KEM Decapsulate | ML-KEM-768 | 0.105 ms | 0.002 ms |
-| Signature Keygen | ML-DSA-65 | 0.412 ms | 0.213 ms |
-| Signature Sign | ML-DSA-65 | **1.287 ms** | 1.579 ms |
-| Signature Verify | ML-DSA-65 | 0.304 ms | 0.159 ms |
-| DH Keygen | X25519 | 0.062 ms | 0.021 ms |
-| DH Exchange | X25519 | 0.056 ms | 0.001 ms |
-| Classical Sig Sign | Ed25519 | 0.059 ms | 0.003 ms |
-| Classical Sig Verify | Ed25519 | 0.166 ms | 0.019 ms |
-| Key Schedule | HKDF-SHA256 | 0.043 ms | 0.001 ms |
-
-![Primitive Breakdown](results/figures/primitive_microbenchmarks.png)
-
-### 5.4 Official Payload Processing (AES-256-GCM)
+### 5.4 Official Payload Processing (AES-256-GCM Streaming, $N=100$)
 From [`results/payload_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/payload_results.csv):
 
-| Payload Name | Size | Chunks | Overhead Bytes | Median Encrypt | Median Decrypt | Throughput (Enc / Dec) | SHA-256 Check |
+| Payload Name | Size (Bytes) | Chunks | Overhead Bytes | Median Encrypt | Median Decrypt | Throughput (Enc / Dec) | SHA-256 Integrity |
 |---|---|---|---|---|---|---|---|
-| `payload_1KB.bin` | 1,024 B | 1 | 38 B | 0.007 ms | 0.007 ms | 145.8 / 148.0 MB/s | **MATCH** |
-| `payload_100KB.bin` | 102,400 B | 2 | 76 B | 0.086 ms | 0.078 ms | 1,135.5 / 1,247.2 MB/s | **MATCH** |
-| `payload_10MB.bin` | 10,485,760 B | 160 | 6,080 B | 20.85 ms | 24.10 ms | 479.6 / 415.0 MB/s | **MATCH** |
+| `payload_1KB.bin` | 1,024 B | 1 | 38 B | 0.007 ms | 0.007 ms | 146.8 / 148.0 MB/s | **MATCH** |
+| `payload_100KB.bin` | 102,400 B | 2 | 76 B | 0.064 ms | 0.058 ms | 1524.7 / 1686.6 MB/s | **MATCH** |
+| `payload_10MB.bin` | 10,485,760 B | 160 | 6,080 B | 15.789 ms | 19.725 ms | 633.4 / 507.0 MB/s | **MATCH** |
 
 ![Payload Throughput](results/figures/payload_throughput.png)
 
@@ -186,58 +193,36 @@ From [`results/payload_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff
 ## 6. Comparison with the Classical Baseline
 
 ### 6.1 Handshake Latency Trade-Off
-In-process cryptographic latency increases from $1.44 \text{ ms}$ (Classical) to $6.64 \text{ ms}$ (PQC), representing a $4.60\times$ computation slowdown. On local TCP loopback, latency shifts from $2.36 \text{ ms}$ to $8.55 \text{ ms}$ ($3.62\times$ slowdown). This overhead is predominantly driven by ML-DSA-65 signature generation ($1.29 \text{ ms}$) and verification ($0.30 \text{ ms}$).
+In-process cryptographic latency increases from $2.32 \text{ ms}$ (Classical) to $4.75 \text{ ms}$ (PQC), representing a $2.05\times$ computation slowdown. On local TCP loopback, latency shifts from $1.91 \text{ ms}$ to $5.52 \text{ ms}$ ($2.89\times$ slowdown). This overhead is predominantly driven by ML-DSA-65 signature generation and verification.
 
 ### 6.2 Bandwidth & Wire Serialization Trade-Off
 The most pronounced divergence between PQC and Classical cryptography is wire size. The total handshake byte payload increases from **318 bytes to 9,016 bytes ($28.35\times$)**.
 - In standard TCP/IP environments with 1,500-byte MTUs, Classical handshakes complete within a single IP packet per flight.
 - PQC handshakes require **multi-packet IP fragmentation**: Flight 2 (`ServerHello`: 4,452 B) spans 3 to 4 packets, and Flight 3 (`ClientAuth`: 3,322 B) spans 3 packets.
 
-### 6.3 Symmetric Record Processing Parity
-Once session keys are established, both suites use AES-256-GCM. Payload encryption and decryption throughputs are virtually identical ($\approx 500 \text{ MB/s}$ for 10 MB streaming), confirming that post-quantum overhead is strictly confined to the handshake phase.
+---
+
+## 7. Limitations & Honest Disclosures
+
+1. **Prototype Disclaimer**: This software is an academic hackathon prototype engineered for Qiskit Fall Fest 2026. It is not intended for commercial production security without independent formal cryptographic audit.
+2. **No PKI / Revocation**: The prototype relies on pre-pinned public keys. Real-world enterprise environments require an automated X.509 PKI certificate authority infrastructure, CRL/OCSP revocation checking, and certificate path validation.
+3. **No Key Confirmation Message Beyond Transcript Signatures**: Traffic keys are not explicitly confirmed with a finished MAC before data exchange, but implicitly authenticated via transcript signatures.
+4. **Server Signs Before Client is Authenticated**: In Flight 2, Bob computes and transmits his signature over the transcript before Alice has proven her identity in Flight 3, exposing the server to computational signature exhaustion from unauthenticated ClientHello floods.
+5. **Python Timing Noise**: User-space Python runtime jitter, garbage collector hooks, and OS thread context switching add millisecond-scale variability.
+6. **No Side-Channel Hardening**: While underlying C/Rust libraries implement constant-time primitives, high-level Python framing and OS thread scheduling are not hardened against cache-timing, branch prediction, or power analysis attacks.
+7. **No Session Resumption**: Every connection requires a full 3-flight asymmetric handshake; no 0-RTT/1-RTT session resumption or PSK caching is implemented.
 
 ---
 
-## 7. Security and Performance Trade-Off Analysis
+## 8. Evidence-Based Recommendations & Improvements
 
-| Dimension | Classical Baseline | PQC Suite | Security & Performance Implication |
-|---|---|---|---|
-| **Quantum Resistance (Confidentiality)** | None (Vulnerable to Shor's algorithm & HNDL) | **Post-Quantum Secure (IND-CCA2, Category 3)** | Harvested classical sessions can be decrypted retroactively; PQC sessions resist quantum cryptanalysis. |
-| **Quantum Resistance (Authentication)** | None (Vulnerable to forged signatures by CRQC) | **Post-Quantum Secure (EUF-CMA, Category 3)** | Prevents real-time or retroactive impersonation attacks. |
-| **Total Wire Footprint** | 318 B | 9,016 B | $28.35\times$ expansion; sensitive to packet loss and high MTU fragmentation. |
-| **Handshake Latency (Local)** | 1.44 ms | 6.64 ms | Completely negligible in interactive desktop/server applications (<10 ms). |
-| **Handshake Latency (WAN 50ms RTT)** | 99.72 ms | 181.68 ms | $+81.96\text{ ms}$ penalty due to 9 KB serialization over bandwidth-constrained links. |
+1. **Session Resumption & PSK**: Implement TLS 1.3-style session tickets to bypass asymmetric PQC signature calculation on reconnects.
+2. **Hybrid Key Exchange**: Combine ML-KEM-768 with X25519 in migration architectures to guarantee classical security against unforeseen lattice cryptanalysis.
+3. **Transport Optimization (Jumbo Frames / QUIC)**: Configure data center MTUs $> 9,000$ B or utilize QUIC multi-stream handling to avoid TCP packet fragmentation on 4.4 KB `ServerHello` flights.
 
 ---
 
-## 8. Honest Disclosures & Limitations
+## 9. Reproducibility Statement
 
-1. **Prototype Disclaimer**: This software is an academic hackathon prototype developed for Qiskit Fall Fest 2026. It has not undergone third-party commercial cryptographic audit.
-2. **Trust Anchor Model vs PKI Hierarchy**: The prototype relies on pre-pinned public keys. Real-world enterprise environments require an automated X.509 PKI certificate authority infrastructure, CRL/OCSP revocation checking, and certificate path validation.
-3. **Stateless Replay Defense Boundary**: Handshake replay protection relies on fresh 32-byte nonces generated per session. Stateless servers do not maintain persistent cross-session databases across server process reboots.
-4. **Physical Side-Channel Protections**: While underlying C/Rust libraries implement constant-time primitives, high-level Python framing and OS thread scheduling are not hardened against cache-timing, branch prediction, or power analysis attacks.
-
----
-
-## 9. Evidence-Based Recommendations & Next Improvements
-
-1. **Deployment Recommendation 1: Session Resumption & Pre-Shared Keys**:
-   - Because ML-DSA-65 signing and transmission dominates handshake latency ($1.29 \text{ ms}$ compute and $3.3 \text{ KB}$ wire bytes), protocols should implement TLS 1.3-style 0-RTT/1-RTT Session Resumption via Pre-Shared Keys (PSK) to avoid full asymmetric handshakes on reconnects.
-2. **Deployment Recommendation 2: Hybrid Key Exchange for Migration**:
-   - Transition architectures should deploy hybrid KEMs (combining X25519 with ML-KEM-768) to comply with NIST FIPS and BSI guidelines, guaranteeing classical security even if an unforeseen cryptanalytic weakness in lattice mathematics emerges.
-3. **Deployment Recommendation 3: Jumbo Frames & UDP/QUIC Framing**:
-   - For internal data center networks, configuring MTUs $> 9,000$ B (Jumbo Frames) avoids TCP packet fragmentation for 4.4 KB `ServerHello` frames.
-
----
-
-## 10. Reproducibility Statement
-
-- **Deterministic Repetition**: All reported numbers are computed from raw per-trial CSV logs (`raw_handshake_trials.csv` and `raw_payload_trials.csv`) verified by `provenance_check.py`.
-- **Primary Commands**:
-  - `python common/env_check.py` $\to$ Environment validation.
-  - `python run_security_tests.py` $\to$ Security tests T1–T9.
-  - `python benchmark_channel.py` $\to$ Handshake and payload benchmarks.
-  - `python plot_results.py` $\to$ Figure generation.
-  - `python provenance_check.py` $\to$ Provenance verification.
-- **Reference Environment**: Python 3.10.11 on AMD64 Windows 10, `cryptography==50.0.2`, `pqcrypto==1.0.0`, `psutil==7.2.2`.
-
+- **Deterministic Repetition**: All reported numbers are derived from raw per-trial CSV logs (`raw_handshake_trials.csv` and `raw_payload_trials.csv`) verified by `tools/verify_results.py`.
+- **Primary Verification Command**: `python tools/verify_results.py`

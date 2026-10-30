@@ -121,6 +121,7 @@ def run_handshake_benchmark(suite_id: int, trials: int = 100, warmup: int = 10, 
                 trial_records.append({
                     "trial": trial_idx,
                     "suite": suite_name,
+                    "local_or_network": mode_label,
                     "handshake_time_ms": duration_ns / 1e6,
                     "c2s_bytes": metrics.c2s_bytes,
                     "s2c_bytes": metrics.s2c_bytes,
@@ -132,6 +133,7 @@ def run_handshake_benchmark(suite_id: int, trials: int = 100, warmup: int = 10, 
                 trial_records.append({
                     "trial": trial_idx,
                     "suite": suite_name,
+                    "local_or_network": mode_label,
                     "handshake_time_ms": 0.0,
                     "c2s_bytes": 0,
                     "s2c_bytes": 0,
@@ -179,7 +181,7 @@ def run_payload_benchmark(suite_id: int):
     payload_specs = [
         ("payload_1KB.bin", 1024, 100),
         ("payload_100KB.bin", 100 * 1024, 100),
-        ("payload_10MB.bin", 10 * 1024 * 1024, 20),
+        ("payload_10MB.bin", 10 * 1024 * 1024, 100),
     ]
 
     summaries = []
@@ -344,20 +346,22 @@ def run_primitive_microbenchmarks():
 
 # --- Real TCP Loopback Benchmark ----------------------------------------------
 
-def run_tcp_benchmark(suite_id: int, trials: int = 20):
+def run_tcp_benchmark(suite_id: int, trials: int = 100, warmup: int = 10):
     suite_name = "PQC" if suite_id == SUITE_PQC else "classical-baseline"
     alice_keys, bob_keys, a_store, b_store = setup_identities(suite_id)
 
+    total_runs = warmup + trials
     samples_ns = []
+    trial_records = []
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_sock.bind(("127.0.0.1", 0))
-    server_sock.listen(trials)
+    server_sock.listen(total_runs)
     port = server_sock.getsockname()[1]
 
     stop_event = threading.Event()
 
     def server_loop():
-        for _ in range(trials):
+        for _ in range(total_runs):
             if stop_event.is_set():
                 break
             conn, _ = server_sock.accept()
@@ -375,7 +379,22 @@ def run_tcp_benchmark(suite_id: int, trials: int = 20):
     t = threading.Thread(target=server_loop)
     t.start()
 
-    for _ in range(trials):
+    # Warmups
+    for _ in range(warmup):
+        client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_sock.connect(("127.0.0.1", port))
+        try:
+            trans_a = SocketTransport(client_sock)
+            alice = AliceSession("alice", alice_keys, "bob", a_store, suite_id=suite_id)
+            ch = alice.start_handshake()
+            trans_a.send(ch)
+            mtype, body, raw = trans_a.recv_frame()
+            ca, _ = alice.process_server_hello(body, raw)
+            trans_a.send(ca)
+        finally:
+            client_sock.close()
+
+    for trial_idx in range(1, trials + 1):
         client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_sock.connect(("127.0.0.1", port))
         try:
@@ -388,7 +407,23 @@ def run_tcp_benchmark(suite_id: int, trials: int = 20):
             ca, _ = alice.process_server_hello(body, raw)
             trans_a.send(ca)
             t1 = time.perf_counter_ns()
-            samples_ns.append(t1 - t0)
+            duration_ns = t1 - t0
+            samples_ns.append(duration_ns)
+
+            c2s_bytes = len(ch) + len(ca)
+            s2c_bytes = len(raw)
+            total_bytes = c2s_bytes + s2c_bytes
+
+            trial_records.append({
+                "trial": trial_idx,
+                "suite": suite_name,
+                "local_or_network": "local (TCP loopback)",
+                "handshake_time_ms": duration_ns / 1e6,
+                "c2s_bytes": c2s_bytes,
+                "s2c_bytes": s2c_bytes,
+                "total_bytes": total_bytes,
+                "success": 1,
+            })
         finally:
             client_sock.close()
 
@@ -398,7 +433,7 @@ def run_tcp_benchmark(suite_id: int, trials: int = 20):
 
     stats = summarize(samples_ns)
     print(f"[{suite_name}] Real TCP Loopback (N={trials}): median = {stats['median_ms']:.3f} ms | IQR = {stats['iqr_ms']:.3f} ms")
-    return stats
+    return stats, trial_records
 
 
 # --- Main Orchestration & Output Generation -----------------------------------
@@ -414,9 +449,9 @@ def main():
     pqc_hs, pqc_trials = run_handshake_benchmark(SUITE_PQC, trials=100, warmup=10, mode_label="local (in-process)")
     cls_hs, cls_trials = run_handshake_benchmark(SUITE_CLASSICAL, trials=100, warmup=10, mode_label="local (in-process)")
 
-    # 2. TCP Loopback Handshake Benchmarks (20 trials each)
-    pqc_tcp = run_tcp_benchmark(SUITE_PQC, trials=20)
-    cls_tcp = run_tcp_benchmark(SUITE_CLASSICAL, trials=20)
+    # 2. TCP Loopback Handshake Benchmarks (100 trials each, 10 warmup)
+    pqc_tcp, pqc_tcp_trials = run_tcp_benchmark(SUITE_PQC, trials=100, warmup=10)
+    cls_tcp, cls_tcp_trials = run_tcp_benchmark(SUITE_CLASSICAL, trials=100, warmup=10)
 
     # 3. Payload Benchmarks
     pqc_payloads, pqc_pay_trials = run_payload_benchmark(SUITE_PQC)
@@ -453,14 +488,14 @@ def main():
             "mode": "PQC",
             "kem": "ML-KEM-768",
             "signature": "ML-DSA-65",
-            "trials": 20,
+            "trials": 100,
             "median_handshake_ms": round(pqc_tcp["median_ms"], 4),
             "iqr_ms": round(pqc_tcp["iqr_ms"], 4),
             "p95_ms": round(pqc_tcp["p95_ms"], 4),
             "client_to_server_bytes": pqc_hs["client_to_server_bytes"],
             "server_to_client_bytes": pqc_hs["server_to_client_bytes"],
             "total_handshake_bytes": pqc_hs["total_handshake_bytes"],
-            "success_count": 20,
+            "success_count": 100,
             "failure_count": 0,
             "local_or_network": "local (TCP loopback)",
         })
@@ -470,14 +505,14 @@ def main():
             "mode": "classical-baseline",
             "kem": "X25519",
             "signature": "Ed25519",
-            "trials": 20,
+            "trials": 100,
             "median_handshake_ms": round(cls_tcp["median_ms"], 4),
             "iqr_ms": round(cls_tcp["iqr_ms"], 4),
             "p95_ms": round(cls_tcp["p95_ms"], 4),
             "client_to_server_bytes": cls_hs["client_to_server_bytes"],
             "server_to_client_bytes": cls_hs["server_to_client_bytes"],
             "total_handshake_bytes": cls_hs["total_handshake_bytes"],
-            "success_count": 20,
+            "success_count": 100,
             "failure_count": 0,
             "local_or_network": "local (TCP loopback)",
         })
@@ -498,10 +533,11 @@ def main():
     # C. Raw per-trial CSVs
     raw_hs_csv = os.path.join(RESULTS_DIR, "raw_handshake_trials.csv")
     with open(raw_hs_csv, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["trial", "suite", "handshake_time_ms", "c2s_bytes", "s2c_bytes", "total_bytes", "success"])
+        fieldnames = ["trial", "suite", "local_or_network", "handshake_time_ms", "c2s_bytes", "s2c_bytes", "total_bytes", "success"]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        for r in pqc_trials + cls_trials:
-            writer.writerow({k: r.get(k, "") for k in ["trial", "suite", "handshake_time_ms", "c2s_bytes", "s2c_bytes", "total_bytes", "success"]})
+        for r in pqc_trials + cls_trials + pqc_tcp_trials + cls_tcp_trials:
+            writer.writerow({k: r.get(k, "") for k in fieldnames})
 
     raw_pay_csv = os.path.join(RESULTS_DIR, "raw_payload_trials.csv")
     with open(raw_pay_csv, "w", newline="", encoding="utf-8") as f:

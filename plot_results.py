@@ -48,7 +48,7 @@ def plot_handshake_latency():
         ax.text(bar.get_x() + bar.get_width() / 2.0, yval + 0.3, f"{med:.2f} ms", ha="center", va="bottom", fontweight="bold", fontsize=10)
 
     ax.set_ylabel("Handshake Completion Time (ms)", fontsize=11, fontweight="bold")
-    ax.set_title("Handshake Latency: PQC vs Classical Baseline (Platform A, N=100 & N=20)", fontsize=12, fontweight="bold", pad=12)
+    ax.set_title("Handshake Latency: PQC vs Classical Baseline (Platform A, N=100)", fontsize=12, fontweight="bold", pad=12)
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=10)
     ax.grid(axis="y", linestyle="--", alpha=0.5)

@@ -1,5 +1,5 @@
 run_id,platform,mode,kem,signature,trials,median_handshake_ms,iqr_ms,p95_ms,client_to_server_bytes,server_to_client_bytes,total_handshake_bytes,success_count,failure_count,local_or_network
-1,A,PQC,ML-KEM-768,ML-DSA-65,100,6.6425,4.2516,14.6516,4564,4452,9016,100,0,local (in-process)
-2,A,classical-baseline,X25519,Ed25519,100,1.4439,2.091,9.1099,167,151,318,100,0,local (in-process)
-3,A,PQC,ML-KEM-768,ML-DSA-65,20,8.5546,4.5191,14.2943,4564,4452,9016,20,0,local (TCP loopback)
-4,A,classical-baseline,X25519,Ed25519,20,2.3629,0.6095,5.0936,167,151,318,20,0,local (TCP loopback)
+1,A,PQC,ML-KEM-768,ML-DSA-65,100,4.7538,2.4809,9.4842,4564,4452,9016,100,0,local (in-process)
+2,A,classical-baseline,X25519,Ed25519,100,2.3241,4.4001,8.4308,167,151,318,100,0,local (in-process)
+3,A,PQC,ML-KEM-768,ML-DSA-65,100,5.5156,2.4002,9.6402,4564,4452,9016,100,0,local (TCP loopback)
+4,A,classical-baseline,X25519,Ed25519,100,1.9083,0.2752,2.8968,167,151,318,100,0,local (TCP loopback)

@@ -1,47 +1,51 @@
 {
   "handshake_results.csv": {
-    "sha256": "eb4ce897f07af66e9fc96399edbf2664ca27e978c62e0b0f7c6f846fa61870bc",
-    "bytes": 583
+    "sha256": "f0924748b4511f2afb6c1fec7764a7cafe196fa316824e22f60260270d7f0ee8",
+    "bytes": 586
   },
   "payload_results.csv": {
-    "sha256": "291f268af27c75b4291e3d6f519fc5e7e7daa025f798096ed77dd2747dd13004",
-    "bytes": 697
+    "sha256": "d89556838457ec653007c3cac038b65a151af2c7a77f7329c2fe08d4f1120eb6",
+    "bytes": 703
   },
   "platform_D_results.csv": {
-    "sha256": "fd3b8fed5b3a9f0c137f4d78a62e7c443b13dc285f571129c77b41e35a58ee4d",
-    "bytes": 203
+    "sha256": "c3a6f1e294ee4711af5ae8b9d0a3a505ce7190e1a0d970db696288bae1e95d13",
+    "bytes": 232
   },
   "primitive_breakdown.csv": {
-    "sha256": "fe0cffb94e6d1272f1ebbcf7c18aad00568fa83194a594407367188bffc3cf06",
-    "bytes": 1508
+    "sha256": "28ab829df720458b6a02daab6d88f263a9c6ce47e6e181d2e091271ea8338d13",
+    "bytes": 1491
   },
   "raw_handshake_trials.csv": {
-    "sha256": "68539e04d94ee07cfafb29cffc7ffb16271b89b56e76e104273b870487fb098f",
-    "bytes": 7656
+    "sha256": "10656c421ad471730b7330690f382a605bf17c22d200b1be41a652ada4611565",
+    "bytes": 23221
   },
   "raw_payload_trials.csv": {
-    "sha256": "3b3156124379969ee2d88cbf15dcbfd54d88825c58146cd8398d0b19be7ddd9b",
-    "bytes": 27415
+    "sha256": "b86b8e8dcd1be78e0946f0942ca3089a140040c3d56180fa0aaeaab500d7d007",
+    "bytes": 38849
+  },
+  "raw_platform_D_trials.csv": {
+    "sha256": "4f409144ddd0805aca8ea094ad3b26a45aeb5d6bc94366a23880052de288e394",
+    "bytes": 13160
   },
   "security_tests.csv": {
-    "sha256": "cf9d15a50872e11ef28cfc935c56c552535bb5605df178051eb990f5c74065a0",
-    "bytes": 3121
+    "sha256": "cb5c6f6ad1f0725a10d262efa27d4308686e86bd39a463eb87669c5a06471c28",
+    "bytes": 3384
   },
   "figures/handshake_latency_comparison.png": {
-    "sha256": "a416ca7b86a428fd3e47651bfc526a1cbaf916de0f63a3a86a0ce750a276a5f8",
-    "bytes": 112188
+    "sha256": "6792daa528d8180e97950a7bee9a872afeef58e1b36439c61b1f2f4b47501902",
+    "bytes": 105434
   },
   "figures/payload_throughput.png": {
-    "sha256": "ecdfa67d67337f2679c078704f81393990f6e414aa7879a9e73c15e0b564f469",
-    "bytes": 190237
+    "sha256": "6f5dbf7d909bf117c0f2107db1b84a21dc7b8fb8d0a7fa8e87155172025a63d5",
+    "bytes": 198031
   },
   "figures/platform_D_comparison.png": {
-    "sha256": "d461f8659710ddf4f662e1614d9f7ba7cebbc5969391514816460cb1e492bc46",
-    "bytes": 98184
+    "sha256": "8480a1538705bd99f1029ca81629b013846a226d147eb55504361631f99593a2",
+    "bytes": 102481
   },
   "figures/primitive_microbenchmarks.png": {
-    "sha256": "89cb2b717054b6f3710fd80ae8c2cee647a3c74a02962876259cc984c621fcd2",
-    "bytes": 222859
+    "sha256": "711cec159bc01af2f3b84a92dfdfada010b785fe5b3f3a3462faacbce4a83539",
+    "bytes": 225608
   },
   "figures/wire_bytes_breakdown.png": {
     "sha256": "906dfadb42d6529f0781baef7092ec513197cc614dd1606b32e7d3fa93f299c6",

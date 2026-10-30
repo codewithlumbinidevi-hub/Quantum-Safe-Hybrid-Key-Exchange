@@ -35,6 +35,7 @@ from channel import (
 )
 from channel.wire import (
     FRAME_HEADER_SIZE,
+    MSG_CLIENT_HELLO,
     ClientHello,
     pack_frame,
     unpack_frame,
@@ -158,7 +159,7 @@ def run_t3(suite_id: int) -> Tuple[bool, str]:
 
 
 def run_t4(suite_id: int) -> Tuple[bool, str]:
-    """T4 Ciphertext tampering: bit flip in record ciphertext -> InvalidTag."""
+    """T4 Ciphertext tampering & reflection: bit flip in record ciphertext -> InvalidTag; wrong-direction reflection -> InvalidTag."""
     alice_keys, bob_keys, a_store, b_store = make_store_pair(suite_id)
     trans_a, trans_b = LoopbackTransport.create_pair()
     alice = AliceSession("alice", alice_keys, "bob", a_store, suite_id=suite_id)
@@ -167,15 +168,25 @@ def run_t4(suite_id: int) -> Tuple[bool, str]:
 
     frame = rec_a.encrypt_record(b"confidential payload data", is_final=True)
     bad_frame = bytearray(frame)
-    # Flip bit inside ciphertext portion
+    # 1. Flip bit inside ciphertext portion -> InvalidTagError
     bad_frame[FRAME_HEADER_SIZE + 13 + 3] ^= 0x01
     _, bad_body, _ = unpack_frame(bytes(bad_frame))
 
     try:
         rec_b.decrypt_record(bad_body)
         return False, "tampered ciphertext decrypted without error"
-    except InvalidTagError as e:
-        return True, f"InvalidTagError raised; plaintext withheld ({e})"
+    except InvalidTagError:
+        pass
+
+    # 2. Wrong-direction / reflection check: feed client-to-server record into sender's own read side
+    _, good_body, _ = unpack_frame(frame)
+    try:
+        rec_a.decrypt_record(good_body)
+        return False, "reflected record accepted on wrong direction key"
+    except InvalidTagError:
+        pass
+
+    return True, "InvalidTagError raised; plaintext withheld; reflection rejected with InvalidTagError"
 
 
 def run_t5(suite_id: int) -> Tuple[bool, str]:
@@ -237,7 +248,7 @@ def run_t6(suite_id: int) -> Tuple[bool, str]:
 
 
 def run_t7(suite_id: int) -> Tuple[bool, str]:
-    """T7 Identity swap: replayed signature in session naming other peer -> reject via transcript binding."""
+    """T7 Identity-only swap: replayed signature in session naming other peer -> reject via transcript binding."""
     alice_keys, bob_keys, a_store, b_store = make_store_pair(suite_id)
 
     alice = AliceSession("alice", alice_keys, "bob", a_store, suite_id=suite_id)
@@ -247,27 +258,41 @@ def run_t7(suite_id: int) -> Tuple[bool, str]:
     _, ch_body, ch_raw = unpack_frame(ch_frame)
     sh_frame = bob.process_client_hello(ch_body, ch_raw)
 
-    # Charlie starts session
+    # Carol identity keypair and store
     if suite_id == SUITE_PQC:
-        charlie_keys = IdentityKeyPair.generate_mldsa("charlie")
+        carol_keys = IdentityKeyPair.generate_mldsa("carol")
     else:
-        charlie_keys = IdentityKeyPair.generate_ed25519("charlie")
+        carol_keys = IdentityKeyPair.generate_ed25519("carol")
     c_store = TrustAnchorStore()
     c_store.pin_identity("bob", bob_keys.public_bytes)
 
-    charlie = AliceSession("charlie", charlie_keys, "bob", c_store, suite_id=suite_id)
-    charlie.start_handshake()
+    # Swapped ClientHello differs ONLY in sender_id ("carol" vs "alice"); same random & KEM public key
+    ch_orig = ClientHello.deserialize(ch_body)
+    ch_swapped = ClientHello(
+        version=ch_orig.version,
+        suite_id=ch_orig.suite_id,
+        sender_id="carol",  # ONLY identity field differs
+        target_id=ch_orig.target_id,
+        client_random=ch_orig.client_random,  # EXACT SAME random as Alice
+        kem_public_key=ch_orig.kem_public_key,  # EXACT SAME ephemeral KEM key
+    )
+    ch_swapped_frame = pack_frame(MSG_CLIENT_HELLO, ch_swapped.serialize())
+
+    carol = AliceSession("carol", carol_keys, "bob", c_store, suite_id=suite_id)
+    carol.client_random = ch_orig.client_random
+    carol._kem_sk = alice._kem_sk
+    carol.client_hello_wire = ch_swapped_frame
 
     _, sh_body, sh_raw = unpack_frame(sh_frame)
     try:
-        charlie.process_server_hello(sh_body, sh_raw)
-        return False, "replayed ServerHello accepted under different peer session"
+        carol.process_server_hello(sh_body, sh_raw)
+        return False, "replayed ServerHello accepted under swapped identity session"
     except SignatureError as e:
         return True, f"Rejected through transcript binding: SignatureError ({e})"
 
 
 def run_t8(suite_id: int) -> Tuple[bool, str]:
-    """T8 Replay: resent record -> SequenceNumberError; old handshake -> SignatureError."""
+    """T8 Replay: intra-session, cross-session record replay, and handshake replays rejected."""
     alice_keys, bob_keys, a_store, b_store = make_store_pair(suite_id)
     trans_a, trans_b = LoopbackTransport.create_pair()
     alice = AliceSession("alice", alice_keys, "bob", a_store, suite_id=suite_id)
@@ -282,26 +307,51 @@ def run_t8(suite_id: int) -> Tuple[bool, str]:
     rec_b.decrypt_record(b0)
     rec_b.decrypt_record(b1)
 
-    # Replay f0
+    # 1. Intra-session record replay -> SequenceNumberError
     try:
         rec_b.decrypt_record(b0)
-        return False, "replayed record accepted"
+        return False, "intra-session replayed record accepted"
     except SequenceNumberError as e:
         record_res = f"Replayed record rejected with SequenceNumberError ({e})"
 
-    # Handshake replay
+    # 2. Cross-session record replay: replay b0 into fresh session 2 (same identities)
+    trans_a2, trans_b2 = LoopbackTransport.create_pair()
     alice_2 = AliceSession("alice", alice_keys, "bob", a_store, suite_id=suite_id)
-    alice_2.start_handshake()
-    # Replay old ServerHello from first session
+    bob_2 = BobSession("bob", bob_keys, "alice", b_store)
+    rec_a2, rec_b2, _ = run_handshake(alice_2, bob_2, trans_a2, trans_b2)
+
+    try:
+        rec_b2.decrypt_record(b0)
+        return False, "cross-session replayed record accepted"
+    except InvalidTagError:
+        cross_res = "Cross-session record replay rejected via key/nonce isolation (InvalidTagError)"
+
+    # 3. Handshake replay: Flight 2 replayed to fresh AliceSession
+    alice_3 = AliceSession("alice", alice_keys, "bob", a_store, suite_id=suite_id)
+    alice_3.start_handshake()
     sh_old = alice.server_hello_wire
     _, sh_b, sh_r = unpack_frame(sh_old)
     try:
-        alice_2.process_server_hello(sh_b, sh_r)
-        return False, "old handshake replayed without error"
+        alice_3.process_server_hello(sh_b, sh_r)
+        return False, "old ServerHello replayed without error"
     except SignatureError:
-        handshake_res = "Old handshake replay rejected via fresh random binding"
+        flight2_res = "Old Flight 2 replay rejected via fresh random binding"
 
-    return True, f"{record_res}; {handshake_res}"
+    # 4. Full captured handshake replay (old CH + old CA) against fresh BobSession
+    ch_old = alice.client_hello_wire
+    ca_old = alice.client_auth_wire
+    _, ch_body_old, ch_raw_old = unpack_frame(ch_old)
+    _, ca_body_old, ca_raw_old = unpack_frame(ca_old)
+
+    bob_fresh = BobSession("bob", bob_keys, "alice", b_store)
+    sh_fresh = bob_fresh.process_client_hello(ch_body_old, ch_raw_old)
+    try:
+        bob_fresh.process_client_auth(ca_body_old, ca_raw_old)
+        return False, "full handshake replay accepted without error"
+    except SignatureError:
+        full_hs_res = "Full handshake replay rejected via fresh server random binding"
+
+    return True, f"{record_res}; {cross_res}; {flight2_res}; {full_hs_res}"
 
 
 def run_t9(suite_id: int) -> Tuple[bool, str]:
@@ -330,11 +380,11 @@ def run_all_tests() -> List[TestResult]:
         TestResult("T1", "Honest run", "none", "handshake ok + payloads decrypt byte-exact"),
         TestResult("T2", "Handshake tampering", "bit flip in KEM ciphertext", "abort"),
         TestResult("T3", "Signature tampering", "bit flip in ML-DSA signature", "reject"),
-        TestResult("T4", "Ciphertext tampering", "bit flip in record ciphertext", "InvalidTag"),
+        TestResult("T4", "Ciphertext tampering & reflection", "bit flip in record ciphertext / wrong direction", "InvalidTag"),
         TestResult("T5", "Tag/AAD tampering", "modified tag or header", "InvalidTag"),
         TestResult("T6", "Untrusted identity", "attacker key not matching trust anchor", "reject"),
-        TestResult("T7", "Identity swap", "replayed signature in session naming other peer", "reject"),
-        TestResult("T8", "Replay", "resent record / old handshake", "reject or documented limitation"),
+        TestResult("T7", "Identity swap", "swapped sender_id with reused signature", "reject"),
+        TestResult("T8", "Replay", "intra/cross-session record replay & handshake replay", "reject or documented limitation"),
         TestResult("T9", "Algorithm downgrade", "changed algorithm IDs", "reject"),
     ]
 

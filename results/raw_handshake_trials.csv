@@ -1,201 +1,401 @@
-trial,suite,handshake_time_ms,c2s_bytes,s2c_bytes,total_bytes,success
-1,PQC,6.6373,4564,4452,9016,1
-2,PQC,8.8925,4564,4452,9016,1
-3,PQC,7.6416,4564,4452,9016,1
-4,PQC,4.6273,4564,4452,9016,1
-5,PQC,3.6212,4564,4452,9016,1
-6,PQC,3.5383,4564,4452,9016,1
-7,PQC,3.0398,4564,4452,9016,1
-8,PQC,4.7068,4564,4452,9016,1
-9,PQC,7.1325,4564,4452,9016,1
-10,PQC,8.4035,4564,4452,9016,1
-11,PQC,12.7326,4564,4452,9016,1
-12,PQC,7.4424,4564,4452,9016,1
-13,PQC,9.8232,4564,4452,9016,1
-14,PQC,8.8665,4564,4452,9016,1
-15,PQC,5.7229,4564,4452,9016,1
-16,PQC,7.7496,4564,4452,9016,1
-17,PQC,10.3082,4564,4452,9016,1
-18,PQC,10.2471,4564,4452,9016,1
-19,PQC,6.6477,4564,4452,9016,1
-20,PQC,14.6492,4564,4452,9016,1
-21,PQC,5.256,4564,4452,9016,1
-22,PQC,9.559,4564,4452,9016,1
-23,PQC,12.7397,4564,4452,9016,1
-24,PQC,4.5176,4564,4452,9016,1
-25,PQC,3.3742,4564,4452,9016,1
-26,PQC,4.3988,4564,4452,9016,1
-27,PQC,8.831,4564,4452,9016,1
-28,PQC,5.0149,4564,4452,9016,1
-29,PQC,6.9947,4564,4452,9016,1
-30,PQC,7.0718,4564,4452,9016,1
-31,PQC,9.0042,4564,4452,9016,1
-32,PQC,5.4513,4564,4452,9016,1
-33,PQC,3.3751,4564,4452,9016,1
-34,PQC,7.6871,4564,4452,9016,1
-35,PQC,4.1201,4564,4452,9016,1
-36,PQC,15.0422,4564,4452,9016,1
-37,PQC,22.5001,4564,4452,9016,1
-38,PQC,14.6969,4564,4452,9016,1
-39,PQC,13.0598,4564,4452,9016,1
-40,PQC,3.9848,4564,4452,9016,1
-41,PQC,7.0411,4564,4452,9016,1
-42,PQC,8.6982,4564,4452,9016,1
-43,PQC,9.2503,4564,4452,9016,1
-44,PQC,6.6083,4564,4452,9016,1
-45,PQC,2.9008,4564,4452,9016,1
-46,PQC,11.3039,4564,4452,9016,1
-47,PQC,3.5038,4564,4452,9016,1
-48,PQC,3.471,4564,4452,9016,1
-49,PQC,11.4588,4564,4452,9016,1
-50,PQC,3.6779,4564,4452,9016,1
-51,PQC,5.7284,4564,4452,9016,1
-52,PQC,5.0834,4564,4452,9016,1
-53,PQC,3.5853,4564,4452,9016,1
-54,PQC,16.246,4564,4452,9016,1
-55,PQC,7.5352,4564,4452,9016,1
-56,PQC,3.9079,4564,4452,9016,1
-57,PQC,5.2077,4564,4452,9016,1
-58,PQC,4.0826,4564,4452,9016,1
-59,PQC,4.1973,4564,4452,9016,1
-60,PQC,4.7193,4564,4452,9016,1
-61,PQC,3.0853,4564,4452,9016,1
-62,PQC,2.9005,4564,4452,9016,1
-63,PQC,13.3699,4564,4452,9016,1
-64,PQC,7.8764,4564,4452,9016,1
-65,PQC,4.4027,4564,4452,9016,1
-66,PQC,10.805,4564,4452,9016,1
-67,PQC,3.6494,4564,4452,9016,1
-68,PQC,6.7398,4564,4452,9016,1
-69,PQC,11.0046,4564,4452,9016,1
-70,PQC,4.6043,4564,4452,9016,1
-71,PQC,14.3513,4564,4452,9016,1
-72,PQC,4.7568,4564,4452,9016,1
-73,PQC,7.1644,4564,4452,9016,1
-74,PQC,6.8709,4564,4452,9016,1
-75,PQC,7.5255,4564,4452,9016,1
-76,PQC,5.4863,4564,4452,9016,1
-77,PQC,5.234,4564,4452,9016,1
-78,PQC,4.4988,4564,4452,9016,1
-79,PQC,3.6639,4564,4452,9016,1
-80,PQC,6.4448,4564,4452,9016,1
-81,PQC,15.6082,4564,4452,9016,1
-82,PQC,3.6402,4564,4452,9016,1
-83,PQC,5.7482,4564,4452,9016,1
-84,PQC,6.84,4564,4452,9016,1
-85,PQC,11.1083,4564,4452,9016,1
-86,PQC,5.0381,4564,4452,9016,1
-87,PQC,5.3882,4564,4452,9016,1
-88,PQC,8.0764,4564,4452,9016,1
-89,PQC,4.4228,4564,4452,9016,1
-90,PQC,4.3505,4564,4452,9016,1
-91,PQC,8.1486,4564,4452,9016,1
-92,PQC,7.0623,4564,4452,9016,1
-93,PQC,6.1026,4564,4452,9016,1
-94,PQC,6.4704,4564,4452,9016,1
-95,PQC,8.636,4564,4452,9016,1
-96,PQC,8.1395,4564,4452,9016,1
-97,PQC,8.573,4564,4452,9016,1
-98,PQC,6.7164,4564,4452,9016,1
-99,PQC,2.8824,4564,4452,9016,1
-100,PQC,6.4424,4564,4452,9016,1
-1,classical-baseline,4.8395,167,151,318,1
-2,classical-baseline,2.3713,167,151,318,1
-3,classical-baseline,1.7023,167,151,318,1
-4,classical-baseline,1.2397,167,151,318,1
-5,classical-baseline,0.9648,167,151,318,1
-6,classical-baseline,1.0244,167,151,318,1
-7,classical-baseline,0.9477,167,151,318,1
-8,classical-baseline,0.9824,167,151,318,1
-9,classical-baseline,0.941,167,151,318,1
-10,classical-baseline,0.9939,167,151,318,1
-11,classical-baseline,4.7765,167,151,318,1
-12,classical-baseline,4.7951,167,151,318,1
-13,classical-baseline,1.0842,167,151,318,1
-14,classical-baseline,0.9889,167,151,318,1
-15,classical-baseline,0.9657,167,151,318,1
-16,classical-baseline,1.0714,167,151,318,1
-17,classical-baseline,1.8007,167,151,318,1
-18,classical-baseline,2.9651,167,151,318,1
-19,classical-baseline,1.1829,167,151,318,1
-20,classical-baseline,1.4713,167,151,318,1
-21,classical-baseline,2.8219,167,151,318,1
-22,classical-baseline,1.733,167,151,318,1
-23,classical-baseline,1.7038,167,151,318,1
-24,classical-baseline,1.2982,167,151,318,1
-25,classical-baseline,1.2723,167,151,318,1
-26,classical-baseline,0.9831,167,151,318,1
-27,classical-baseline,3.5271,167,151,318,1
-28,classical-baseline,6.9501,167,151,318,1
-29,classical-baseline,2.6599,167,151,318,1
-30,classical-baseline,1.4565,167,151,318,1
-31,classical-baseline,1.0178,167,151,318,1
-32,classical-baseline,0.9839,167,151,318,1
-33,classical-baseline,9.035,167,151,318,1
-34,classical-baseline,1.8758,167,151,318,1
-35,classical-baseline,1.9204,167,151,318,1
-36,classical-baseline,1.2238,167,151,318,1
-37,classical-baseline,1.2098,167,151,318,1
-38,classical-baseline,1.0761,167,151,318,1
-39,classical-baseline,5.1653,167,151,318,1
-40,classical-baseline,2.9457,167,151,318,1
-41,classical-baseline,1.5794,167,151,318,1
-42,classical-baseline,1.4332,167,151,318,1
-43,classical-baseline,3.1416,167,151,318,1
-44,classical-baseline,1.4601,167,151,318,1
-45,classical-baseline,1.0069,167,151,318,1
-46,classical-baseline,4.3656,167,151,318,1
-47,classical-baseline,3.4724,167,151,318,1
-48,classical-baseline,1.2571,167,151,318,1
-49,classical-baseline,0.9811,167,151,318,1
-50,classical-baseline,0.984,167,151,318,1
-51,classical-baseline,1.2003,167,151,318,1
-52,classical-baseline,1.0326,167,151,318,1
-53,classical-baseline,1.0263,167,151,318,1
-54,classical-baseline,1.0334,167,151,318,1
-55,classical-baseline,3.1081,167,151,318,1
-56,classical-baseline,1.4545,167,151,318,1
-57,classical-baseline,10.5962,167,151,318,1
-58,classical-baseline,11.33,167,151,318,1
-59,classical-baseline,4.3576,167,151,318,1
-60,classical-baseline,11.5244,167,151,318,1
-61,classical-baseline,2.5813,167,151,318,1
-62,classical-baseline,2.8742,167,151,318,1
-63,classical-baseline,4.7095,167,151,318,1
-64,classical-baseline,6.9,167,151,318,1
-65,classical-baseline,4.0945,167,151,318,1
-66,classical-baseline,1.5086,167,151,318,1
-67,classical-baseline,5.6058,167,151,318,1
-68,classical-baseline,2.3368,167,151,318,1
-69,classical-baseline,1.0479,167,151,318,1
-70,classical-baseline,0.9754,167,151,318,1
-71,classical-baseline,0.9823,167,151,318,1
-72,classical-baseline,0.9936,167,151,318,1
-73,classical-baseline,1.048,167,151,318,1
-74,classical-baseline,1.0203,167,151,318,1
-75,classical-baseline,0.9634,167,151,318,1
-76,classical-baseline,2.761,167,151,318,1
-77,classical-baseline,5.8193,167,151,318,1
-78,classical-baseline,1.7831,167,151,318,1
-79,classical-baseline,1.0596,167,151,318,1
-80,classical-baseline,1.3492,167,151,318,1
-81,classical-baseline,1.5939,167,151,318,1
-82,classical-baseline,1.2023,167,151,318,1
-83,classical-baseline,5.8734,167,151,318,1
-84,classical-baseline,3.4992,167,151,318,1
-85,classical-baseline,1.0801,167,151,318,1
-86,classical-baseline,1.0258,167,151,318,1
-87,classical-baseline,0.9886,167,151,318,1
-88,classical-baseline,0.9631,167,151,318,1
-89,classical-baseline,0.9861,167,151,318,1
-90,classical-baseline,1.0064,167,151,318,1
-91,classical-baseline,11.4871,167,151,318,1
-92,classical-baseline,3.0289,167,151,318,1
-93,classical-baseline,10.5328,167,151,318,1
-94,classical-baseline,4.0474,167,151,318,1
-95,classical-baseline,1.1467,167,151,318,1
-96,classical-baseline,0.9643,167,151,318,1
-97,classical-baseline,1.3368,167,151,318,1
-98,classical-baseline,1.0302,167,151,318,1
-99,classical-baseline,0.9604,167,151,318,1
-100,classical-baseline,4.7346,167,151,318,1
+trial,suite,local_or_network,handshake_time_ms,c2s_bytes,s2c_bytes,total_bytes,success
+1,PQC,local (in-process),4.1027,4564,4452,9016,1
+2,PQC,local (in-process),4.0291,4564,4452,9016,1
+3,PQC,local (in-process),4.7892,4564,4452,9016,1
+4,PQC,local (in-process),6.1337,4564,4452,9016,1
+5,PQC,local (in-process),4.075,4564,4452,9016,1
+6,PQC,local (in-process),4.4332,4564,4452,9016,1
+7,PQC,local (in-process),4.871,4564,4452,9016,1
+8,PQC,local (in-process),3.35,4564,4452,9016,1
+9,PQC,local (in-process),3.5783,4564,4452,9016,1
+10,PQC,local (in-process),3.9296,4564,4452,9016,1
+11,PQC,local (in-process),7.6011,4564,4452,9016,1
+12,PQC,local (in-process),4.779,4564,4452,9016,1
+13,PQC,local (in-process),3.4836,4564,4452,9016,1
+14,PQC,local (in-process),7.0112,4564,4452,9016,1
+15,PQC,local (in-process),8.3452,4564,4452,9016,1
+16,PQC,local (in-process),3.9266,4564,4452,9016,1
+17,PQC,local (in-process),4.6809,4564,4452,9016,1
+18,PQC,local (in-process),6.0375,4564,4452,9016,1
+19,PQC,local (in-process),5.5012,4564,4452,9016,1
+20,PQC,local (in-process),6.1879,4564,4452,9016,1
+21,PQC,local (in-process),4.4414,4564,4452,9016,1
+22,PQC,local (in-process),4.4313,4564,4452,9016,1
+23,PQC,local (in-process),5.888,4564,4452,9016,1
+24,PQC,local (in-process),5.8823,4564,4452,9016,1
+25,PQC,local (in-process),4.3929,4564,4452,9016,1
+26,PQC,local (in-process),6.9566,4564,4452,9016,1
+27,PQC,local (in-process),3.0506,4564,4452,9016,1
+28,PQC,local (in-process),9.0328,4564,4452,9016,1
+29,PQC,local (in-process),3.1754,4564,4452,9016,1
+30,PQC,local (in-process),4.1306,4564,4452,9016,1
+31,PQC,local (in-process),7.3747,4564,4452,9016,1
+32,PQC,local (in-process),3.9194,4564,4452,9016,1
+33,PQC,local (in-process),3.9958,4564,4452,9016,1
+34,PQC,local (in-process),3.1033,4564,4452,9016,1
+35,PQC,local (in-process),6.8988,4564,4452,9016,1
+36,PQC,local (in-process),4.9082,4564,4452,9016,1
+37,PQC,local (in-process),3.5327,4564,4452,9016,1
+38,PQC,local (in-process),2.7853,4564,4452,9016,1
+39,PQC,local (in-process),2.9677,4564,4452,9016,1
+40,PQC,local (in-process),6.019,4564,4452,9016,1
+41,PQC,local (in-process),5.3365,4564,4452,9016,1
+42,PQC,local (in-process),4.8325,4564,4452,9016,1
+43,PQC,local (in-process),3.9634,4564,4452,9016,1
+44,PQC,local (in-process),5.1591,4564,4452,9016,1
+45,PQC,local (in-process),3.469,4564,4452,9016,1
+46,PQC,local (in-process),5.0161,4564,4452,9016,1
+47,PQC,local (in-process),3.2578,4564,4452,9016,1
+48,PQC,local (in-process),6.0199,4564,4452,9016,1
+49,PQC,local (in-process),3.6814,4564,4452,9016,1
+50,PQC,local (in-process),7.8341,4564,4452,9016,1
+51,PQC,local (in-process),5.3401,4564,4452,9016,1
+52,PQC,local (in-process),4.1651,4564,4452,9016,1
+53,PQC,local (in-process),3.6949,4564,4452,9016,1
+54,PQC,local (in-process),3.91,4564,4452,9016,1
+55,PQC,local (in-process),9.4786,4564,4452,9016,1
+56,PQC,local (in-process),4.3739,4564,4452,9016,1
+57,PQC,local (in-process),4.6945,4564,4452,9016,1
+58,PQC,local (in-process),8.5255,4564,4452,9016,1
+59,PQC,local (in-process),6.6974,4564,4452,9016,1
+60,PQC,local (in-process),5.149,4564,4452,9016,1
+61,PQC,local (in-process),3.7694,4564,4452,9016,1
+62,PQC,local (in-process),9.6685,4564,4452,9016,1
+63,PQC,local (in-process),3.1092,4564,4452,9016,1
+64,PQC,local (in-process),14.4823,4564,4452,9016,1
+65,PQC,local (in-process),4.97,4564,4452,9016,1
+66,PQC,local (in-process),4.6392,4564,4452,9016,1
+67,PQC,local (in-process),3.8959,4564,4452,9016,1
+68,PQC,local (in-process),2.8642,4564,4452,9016,1
+69,PQC,local (in-process),5.7842,4564,4452,9016,1
+70,PQC,local (in-process),13.5827,4564,4452,9016,1
+71,PQC,local (in-process),3.1167,4564,4452,9016,1
+72,PQC,local (in-process),11.6093,4564,4452,9016,1
+73,PQC,local (in-process),6.1005,4564,4452,9016,1
+74,PQC,local (in-process),6.061,4564,4452,9016,1
+75,PQC,local (in-process),6.4517,4564,4452,9016,1
+76,PQC,local (in-process),4.2283,4564,4452,9016,1
+77,PQC,local (in-process),8.4706,4564,4452,9016,1
+78,PQC,local (in-process),3.2161,4564,4452,9016,1
+79,PQC,local (in-process),3.6502,4564,4452,9016,1
+80,PQC,local (in-process),7.1326,4564,4452,9016,1
+81,PQC,local (in-process),3.0545,4564,4452,9016,1
+82,PQC,local (in-process),3.4822,4564,4452,9016,1
+83,PQC,local (in-process),2.9844,4564,4452,9016,1
+84,PQC,local (in-process),8.0368,4564,4452,9016,1
+85,PQC,local (in-process),9.1636,4564,4452,9016,1
+86,PQC,local (in-process),9.591,4564,4452,9016,1
+87,PQC,local (in-process),6.6521,4564,4452,9016,1
+88,PQC,local (in-process),7.5569,4564,4452,9016,1
+89,PQC,local (in-process),4.7287,4564,4452,9016,1
+90,PQC,local (in-process),8.2438,4564,4452,9016,1
+91,PQC,local (in-process),4.8925,4564,4452,9016,1
+92,PQC,local (in-process),5.4572,4564,4452,9016,1
+93,PQC,local (in-process),4.4159,4564,4452,9016,1
+94,PQC,local (in-process),7.6942,4564,4452,9016,1
+95,PQC,local (in-process),4.7085,4564,4452,9016,1
+96,PQC,local (in-process),3.7267,4564,4452,9016,1
+97,PQC,local (in-process),2.9577,4564,4452,9016,1
+98,PQC,local (in-process),3.0793,4564,4452,9016,1
+99,PQC,local (in-process),3.7742,4564,4452,9016,1
+100,PQC,local (in-process),5.5389,4564,4452,9016,1
+1,classical-baseline,local (in-process),0.95,167,151,318,1
+2,classical-baseline,local (in-process),1.0701,167,151,318,1
+3,classical-baseline,local (in-process),0.9775,167,151,318,1
+4,classical-baseline,local (in-process),1.6647,167,151,318,1
+5,classical-baseline,local (in-process),1.0993,167,151,318,1
+6,classical-baseline,local (in-process),1.0645,167,151,318,1
+7,classical-baseline,local (in-process),1.1315,167,151,318,1
+8,classical-baseline,local (in-process),1.0409,167,151,318,1
+9,classical-baseline,local (in-process),1.5475,167,151,318,1
+10,classical-baseline,local (in-process),5.4811,167,151,318,1
+11,classical-baseline,local (in-process),1.0908,167,151,318,1
+12,classical-baseline,local (in-process),1.2304,167,151,318,1
+13,classical-baseline,local (in-process),5.6525,167,151,318,1
+14,classical-baseline,local (in-process),2.8966,167,151,318,1
+15,classical-baseline,local (in-process),1.7973,167,151,318,1
+16,classical-baseline,local (in-process),1.0471,167,151,318,1
+17,classical-baseline,local (in-process),1.0266,167,151,318,1
+18,classical-baseline,local (in-process),2.4332,167,151,318,1
+19,classical-baseline,local (in-process),1.2859,167,151,318,1
+20,classical-baseline,local (in-process),2.98,167,151,318,1
+21,classical-baseline,local (in-process),1.4057,167,151,318,1
+22,classical-baseline,local (in-process),6.1028,167,151,318,1
+23,classical-baseline,local (in-process),3.6487,167,151,318,1
+24,classical-baseline,local (in-process),5.9222,167,151,318,1
+25,classical-baseline,local (in-process),7.9271,167,151,318,1
+26,classical-baseline,local (in-process),9.1606,167,151,318,1
+27,classical-baseline,local (in-process),4.7739,167,151,318,1
+28,classical-baseline,local (in-process),2.0144,167,151,318,1
+29,classical-baseline,local (in-process),3.8996,167,151,318,1
+30,classical-baseline,local (in-process),1.7745,167,151,318,1
+31,classical-baseline,local (in-process),1.8953,167,151,318,1
+32,classical-baseline,local (in-process),3.7529,167,151,318,1
+33,classical-baseline,local (in-process),1.1277,167,151,318,1
+34,classical-baseline,local (in-process),3.4181,167,151,318,1
+35,classical-baseline,local (in-process),2.2622,167,151,318,1
+36,classical-baseline,local (in-process),3.2452,167,151,318,1
+37,classical-baseline,local (in-process),6.261,167,151,318,1
+38,classical-baseline,local (in-process),6.5225,167,151,318,1
+39,classical-baseline,local (in-process),4.4011,167,151,318,1
+40,classical-baseline,local (in-process),5.1074,167,151,318,1
+41,classical-baseline,local (in-process),2.8181,167,151,318,1
+42,classical-baseline,local (in-process),1.0508,167,151,318,1
+43,classical-baseline,local (in-process),1.0471,167,151,318,1
+44,classical-baseline,local (in-process),1.2154,167,151,318,1
+45,classical-baseline,local (in-process),5.6264,167,151,318,1
+46,classical-baseline,local (in-process),3.4523,167,151,318,1
+47,classical-baseline,local (in-process),1.1168,167,151,318,1
+48,classical-baseline,local (in-process),1.0122,167,151,318,1
+49,classical-baseline,local (in-process),1.0978,167,151,318,1
+50,classical-baseline,local (in-process),0.9993,167,151,318,1
+51,classical-baseline,local (in-process),2.9682,167,151,318,1
+52,classical-baseline,local (in-process),5.8597,167,151,318,1
+53,classical-baseline,local (in-process),5.7003,167,151,318,1
+54,classical-baseline,local (in-process),1.0141,167,151,318,1
+55,classical-baseline,local (in-process),0.9843,167,151,318,1
+56,classical-baseline,local (in-process),1.1033,167,151,318,1
+57,classical-baseline,local (in-process),3.2035,167,151,318,1
+58,classical-baseline,local (in-process),1.5009,167,151,318,1
+59,classical-baseline,local (in-process),0.9725,167,151,318,1
+60,classical-baseline,local (in-process),5.7169,167,151,318,1
+61,classical-baseline,local (in-process),5.0114,167,151,318,1
+62,classical-baseline,local (in-process),11.0127,167,151,318,1
+63,classical-baseline,local (in-process),6.4679,167,151,318,1
+64,classical-baseline,local (in-process),5.7737,167,151,318,1
+65,classical-baseline,local (in-process),2.071,167,151,318,1
+66,classical-baseline,local (in-process),3.6346,167,151,318,1
+67,classical-baseline,local (in-process),1.0604,167,151,318,1
+68,classical-baseline,local (in-process),1.2026,167,151,318,1
+69,classical-baseline,local (in-process),3.9119,167,151,318,1
+70,classical-baseline,local (in-process),2.5466,167,151,318,1
+71,classical-baseline,local (in-process),5.7873,167,151,318,1
+72,classical-baseline,local (in-process),1.0378,167,151,318,1
+73,classical-baseline,local (in-process),1.2352,167,151,318,1
+74,classical-baseline,local (in-process),0.9961,167,151,318,1
+75,classical-baseline,local (in-process),1.2629,167,151,318,1
+76,classical-baseline,local (in-process),1.2708,167,151,318,1
+77,classical-baseline,local (in-process),5.376,167,151,318,1
+78,classical-baseline,local (in-process),5.9073,167,151,318,1
+79,classical-baseline,local (in-process),4.3087,167,151,318,1
+80,classical-baseline,local (in-process),4.0995,167,151,318,1
+81,classical-baseline,local (in-process),7.7756,167,151,318,1
+82,classical-baseline,local (in-process),2.0567,167,151,318,1
+83,classical-baseline,local (in-process),3.3457,167,151,318,1
+84,classical-baseline,local (in-process),2.386,167,151,318,1
+85,classical-baseline,local (in-process),6.8972,167,151,318,1
+86,classical-baseline,local (in-process),8.3924,167,151,318,1
+87,classical-baseline,local (in-process),6.0774,167,151,318,1
+88,classical-baseline,local (in-process),1.5525,167,151,318,1
+89,classical-baseline,local (in-process),1.0284,167,151,318,1
+90,classical-baseline,local (in-process),1.1175,167,151,318,1
+91,classical-baseline,local (in-process),1.0436,167,151,318,1
+92,classical-baseline,local (in-process),0.9607,167,151,318,1
+93,classical-baseline,local (in-process),10.7062,167,151,318,1
+94,classical-baseline,local (in-process),1.839,167,151,318,1
+95,classical-baseline,local (in-process),1.8123,167,151,318,1
+96,classical-baseline,local (in-process),1.699,167,151,318,1
+97,classical-baseline,local (in-process),5.7355,167,151,318,1
+98,classical-baseline,local (in-process),12.8194,167,151,318,1
+99,classical-baseline,local (in-process),8.2574,167,151,318,1
+100,classical-baseline,local (in-process),10.0217,167,151,318,1
+1,PQC,local (TCP loopback),6.4298,4564,4452,9016,1
+2,PQC,local (TCP loopback),4.283,4564,4452,9016,1
+3,PQC,local (TCP loopback),5.2014,4564,4452,9016,1
+4,PQC,local (TCP loopback),8.1317,4564,4452,9016,1
+5,PQC,local (TCP loopback),7.2534,4564,4452,9016,1
+6,PQC,local (TCP loopback),6.1731,4564,4452,9016,1
+7,PQC,local (TCP loopback),5.5075,4564,4452,9016,1
+8,PQC,local (TCP loopback),4.9983,4564,4452,9016,1
+9,PQC,local (TCP loopback),7.0848,4564,4452,9016,1
+10,PQC,local (TCP loopback),6.2102,4564,4452,9016,1
+11,PQC,local (TCP loopback),4.2403,4564,4452,9016,1
+12,PQC,local (TCP loopback),3.9581,4564,4452,9016,1
+13,PQC,local (TCP loopback),5.6209,4564,4452,9016,1
+14,PQC,local (TCP loopback),7.0693,4564,4452,9016,1
+15,PQC,local (TCP loopback),7.8723,4564,4452,9016,1
+16,PQC,local (TCP loopback),4.4929,4564,4452,9016,1
+17,PQC,local (TCP loopback),4.5281,4564,4452,9016,1
+18,PQC,local (TCP loopback),5.1711,4564,4452,9016,1
+19,PQC,local (TCP loopback),5.8387,4564,4452,9016,1
+20,PQC,local (TCP loopback),10.0005,4564,4452,9016,1
+21,PQC,local (TCP loopback),6.8994,4564,4452,9016,1
+22,PQC,local (TCP loopback),5.2876,4564,4452,9016,1
+23,PQC,local (TCP loopback),4.7706,4564,4452,9016,1
+24,PQC,local (TCP loopback),10.8712,4564,4452,9016,1
+25,PQC,local (TCP loopback),7.4808,4564,4452,9016,1
+26,PQC,local (TCP loopback),9.6212,4564,4452,9016,1
+27,PQC,local (TCP loopback),7.475,4564,4452,9016,1
+28,PQC,local (TCP loopback),6.67,4564,4452,9016,1
+29,PQC,local (TCP loopback),4.0366,4564,4452,9016,1
+30,PQC,local (TCP loopback),5.9589,4564,4452,9016,1
+31,PQC,local (TCP loopback),4.7603,4564,4452,9016,1
+32,PQC,local (TCP loopback),5.2282,4564,4452,9016,1
+33,PQC,local (TCP loopback),6.5977,4564,4452,9016,1
+34,PQC,local (TCP loopback),6.6547,4564,4452,9016,1
+35,PQC,local (TCP loopback),8.2693,4564,4452,9016,1
+36,PQC,local (TCP loopback),5.5237,4564,4452,9016,1
+37,PQC,local (TCP loopback),6.5956,4564,4452,9016,1
+38,PQC,local (TCP loopback),4.7005,4564,4452,9016,1
+39,PQC,local (TCP loopback),6.8797,4564,4452,9016,1
+40,PQC,local (TCP loopback),3.5894,4564,4452,9016,1
+41,PQC,local (TCP loopback),3.3872,4564,4452,9016,1
+42,PQC,local (TCP loopback),4.1362,4564,4452,9016,1
+43,PQC,local (TCP loopback),11.4174,4564,4452,9016,1
+44,PQC,local (TCP loopback),7.7957,4564,4452,9016,1
+45,PQC,local (TCP loopback),5.6816,4564,4452,9016,1
+46,PQC,local (TCP loopback),4.3738,4564,4452,9016,1
+47,PQC,local (TCP loopback),6.5715,4564,4452,9016,1
+48,PQC,local (TCP loopback),4.3956,4564,4452,9016,1
+49,PQC,local (TCP loopback),3.6818,4564,4452,9016,1
+50,PQC,local (TCP loopback),5.7969,4564,4452,9016,1
+51,PQC,local (TCP loopback),5.1819,4564,4452,9016,1
+52,PQC,local (TCP loopback),5.9308,4564,4452,9016,1
+53,PQC,local (TCP loopback),3.7768,4564,4452,9016,1
+54,PQC,local (TCP loopback),5.4307,4564,4452,9016,1
+55,PQC,local (TCP loopback),8.5754,4564,4452,9016,1
+56,PQC,local (TCP loopback),4.0659,4564,4452,9016,1
+57,PQC,local (TCP loopback),7.4629,4564,4452,9016,1
+58,PQC,local (TCP loopback),10.394,4564,4452,9016,1
+59,PQC,local (TCP loopback),5.1959,4564,4452,9016,1
+60,PQC,local (TCP loopback),5.8937,4564,4452,9016,1
+61,PQC,local (TCP loopback),3.8504,4564,4452,9016,1
+62,PQC,local (TCP loopback),8.5608,4564,4452,9016,1
+63,PQC,local (TCP loopback),5.8758,4564,4452,9016,1
+64,PQC,local (TCP loopback),8.4581,4564,4452,9016,1
+65,PQC,local (TCP loopback),4.3034,4564,4452,9016,1
+66,PQC,local (TCP loopback),9.0866,4564,4452,9016,1
+67,PQC,local (TCP loopback),5.1394,4564,4452,9016,1
+68,PQC,local (TCP loopback),3.174,4564,4452,9016,1
+69,PQC,local (TCP loopback),5.1272,4564,4452,9016,1
+70,PQC,local (TCP loopback),5.2089,4564,4452,9016,1
+71,PQC,local (TCP loopback),5.1215,4564,4452,9016,1
+72,PQC,local (TCP loopback),7.713,4564,4452,9016,1
+73,PQC,local (TCP loopback),4.0601,4564,4452,9016,1
+74,PQC,local (TCP loopback),6.0447,4564,4452,9016,1
+75,PQC,local (TCP loopback),6.8651,4564,4452,9016,1
+76,PQC,local (TCP loopback),17.0848,4564,4452,9016,1
+77,PQC,local (TCP loopback),6.5103,4564,4452,9016,1
+78,PQC,local (TCP loopback),7.2249,4564,4452,9016,1
+79,PQC,local (TCP loopback),3.933,4564,4452,9016,1
+80,PQC,local (TCP loopback),5.7562,4564,4452,9016,1
+81,PQC,local (TCP loopback),4.8112,4564,4452,9016,1
+82,PQC,local (TCP loopback),3.6747,4564,4452,9016,1
+83,PQC,local (TCP loopback),3.5821,4564,4452,9016,1
+84,PQC,local (TCP loopback),4.8773,4564,4452,9016,1
+85,PQC,local (TCP loopback),3.7169,4564,4452,9016,1
+86,PQC,local (TCP loopback),4.5241,4564,4452,9016,1
+87,PQC,local (TCP loopback),4.3543,4564,4452,9016,1
+88,PQC,local (TCP loopback),4.1559,4564,4452,9016,1
+89,PQC,local (TCP loopback),6.1124,4564,4452,9016,1
+90,PQC,local (TCP loopback),7.445,4564,4452,9016,1
+91,PQC,local (TCP loopback),4.6369,4564,4452,9016,1
+92,PQC,local (TCP loopback),3.5909,4564,4452,9016,1
+93,PQC,local (TCP loopback),5.4189,4564,4452,9016,1
+94,PQC,local (TCP loopback),6.2723,4564,4452,9016,1
+95,PQC,local (TCP loopback),5.6565,4564,4452,9016,1
+96,PQC,local (TCP loopback),5.7925,4564,4452,9016,1
+97,PQC,local (TCP loopback),5.4359,4564,4452,9016,1
+98,PQC,local (TCP loopback),5.3104,4564,4452,9016,1
+99,PQC,local (TCP loopback),3.9158,4564,4452,9016,1
+100,PQC,local (TCP loopback),3.9983,4564,4452,9016,1
+1,classical-baseline,local (TCP loopback),2.817,167,151,318,1
+2,classical-baseline,local (TCP loopback),1.8064,167,151,318,1
+3,classical-baseline,local (TCP loopback),2.3322,167,151,318,1
+4,classical-baseline,local (TCP loopback),1.8883,167,151,318,1
+5,classical-baseline,local (TCP loopback),1.8383,167,151,318,1
+6,classical-baseline,local (TCP loopback),1.9034,167,151,318,1
+7,classical-baseline,local (TCP loopback),3.3356,167,151,318,1
+8,classical-baseline,local (TCP loopback),1.8688,167,151,318,1
+9,classical-baseline,local (TCP loopback),2.0704,167,151,318,1
+10,classical-baseline,local (TCP loopback),1.9516,167,151,318,1
+11,classical-baseline,local (TCP loopback),1.7936,167,151,318,1
+12,classical-baseline,local (TCP loopback),1.7332,167,151,318,1
+13,classical-baseline,local (TCP loopback),2.2366,167,151,318,1
+14,classical-baseline,local (TCP loopback),1.9256,167,151,318,1
+15,classical-baseline,local (TCP loopback),2.0165,167,151,318,1
+16,classical-baseline,local (TCP loopback),2.9043,167,151,318,1
+17,classical-baseline,local (TCP loopback),1.9667,167,151,318,1
+18,classical-baseline,local (TCP loopback),2.0875,167,151,318,1
+19,classical-baseline,local (TCP loopback),2.1394,167,151,318,1
+20,classical-baseline,local (TCP loopback),1.9578,167,151,318,1
+21,classical-baseline,local (TCP loopback),1.982,167,151,318,1
+22,classical-baseline,local (TCP loopback),1.8082,167,151,318,1
+23,classical-baseline,local (TCP loopback),1.9874,167,151,318,1
+24,classical-baseline,local (TCP loopback),1.8277,167,151,318,1
+25,classical-baseline,local (TCP loopback),1.7942,167,151,318,1
+26,classical-baseline,local (TCP loopback),2.9629,167,151,318,1
+27,classical-baseline,local (TCP loopback),2.0142,167,151,318,1
+28,classical-baseline,local (TCP loopback),1.9234,167,151,318,1
+29,classical-baseline,local (TCP loopback),2.1229,167,151,318,1
+30,classical-baseline,local (TCP loopback),2.0045,167,151,318,1
+31,classical-baseline,local (TCP loopback),1.9861,167,151,318,1
+32,classical-baseline,local (TCP loopback),2.175,167,151,318,1
+33,classical-baseline,local (TCP loopback),1.9307,167,151,318,1
+34,classical-baseline,local (TCP loopback),1.8626,167,151,318,1
+35,classical-baseline,local (TCP loopback),2.1662,167,151,318,1
+36,classical-baseline,local (TCP loopback),1.8924,167,151,318,1
+37,classical-baseline,local (TCP loopback),2.2548,167,151,318,1
+38,classical-baseline,local (TCP loopback),2.1771,167,151,318,1
+39,classical-baseline,local (TCP loopback),2.7175,167,151,318,1
+40,classical-baseline,local (TCP loopback),1.8212,167,151,318,1
+41,classical-baseline,local (TCP loopback),2.3023,167,151,318,1
+42,classical-baseline,local (TCP loopback),1.8597,167,151,318,1
+43,classical-baseline,local (TCP loopback),1.794,167,151,318,1
+44,classical-baseline,local (TCP loopback),1.7694,167,151,318,1
+45,classical-baseline,local (TCP loopback),3.6256,167,151,318,1
+46,classical-baseline,local (TCP loopback),1.8761,167,151,318,1
+47,classical-baseline,local (TCP loopback),2.0605,167,151,318,1
+48,classical-baseline,local (TCP loopback),1.9486,167,151,318,1
+49,classical-baseline,local (TCP loopback),1.8022,167,151,318,1
+50,classical-baseline,local (TCP loopback),1.7727,167,151,318,1
+51,classical-baseline,local (TCP loopback),2.4444,167,151,318,1
+52,classical-baseline,local (TCP loopback),2.035,167,151,318,1
+53,classical-baseline,local (TCP loopback),1.9214,167,151,318,1
+54,classical-baseline,local (TCP loopback),2.5163,167,151,318,1
+55,classical-baseline,local (TCP loopback),1.8811,167,151,318,1
+56,classical-baseline,local (TCP loopback),1.9424,167,151,318,1
+57,classical-baseline,local (TCP loopback),1.8485,167,151,318,1
+58,classical-baseline,local (TCP loopback),2.9593,167,151,318,1
+59,classical-baseline,local (TCP loopback),1.9238,167,151,318,1
+60,classical-baseline,local (TCP loopback),2.306,167,151,318,1
+61,classical-baseline,local (TCP loopback),1.9725,167,151,318,1
+62,classical-baseline,local (TCP loopback),1.7558,167,151,318,1
+63,classical-baseline,local (TCP loopback),1.7995,167,151,318,1
+64,classical-baseline,local (TCP loopback),2.8964,167,151,318,1
+65,classical-baseline,local (TCP loopback),1.8897,167,151,318,1
+66,classical-baseline,local (TCP loopback),1.9671,167,151,318,1
+67,classical-baseline,local (TCP loopback),1.946,167,151,318,1
+68,classical-baseline,local (TCP loopback),1.7956,167,151,318,1
+69,classical-baseline,local (TCP loopback),1.8548,167,151,318,1
+70,classical-baseline,local (TCP loopback),1.9013,167,151,318,1
+71,classical-baseline,local (TCP loopback),2.5811,167,151,318,1
+72,classical-baseline,local (TCP loopback),1.9182,167,151,318,1
+73,classical-baseline,local (TCP loopback),2.4956,167,151,318,1
+74,classical-baseline,local (TCP loopback),1.8022,167,151,318,1
+75,classical-baseline,local (TCP loopback),1.7811,167,151,318,1
+76,classical-baseline,local (TCP loopback),1.894,167,151,318,1
+77,classical-baseline,local (TCP loopback),2.4167,167,151,318,1
+78,classical-baseline,local (TCP loopback),1.8769,167,151,318,1
+79,classical-baseline,local (TCP loopback),1.9105,167,151,318,1
+80,classical-baseline,local (TCP loopback),2.3103,167,151,318,1
+81,classical-baseline,local (TCP loopback),1.821,167,151,318,1
+82,classical-baseline,local (TCP loopback),1.7749,167,151,318,1
+83,classical-baseline,local (TCP loopback),1.838,167,151,318,1
+84,classical-baseline,local (TCP loopback),2.3111,167,151,318,1
+85,classical-baseline,local (TCP loopback),1.8828,167,151,318,1
+86,classical-baseline,local (TCP loopback),1.7665,167,151,318,1
+87,classical-baseline,local (TCP loopback),1.906,167,151,318,1
+88,classical-baseline,local (TCP loopback),1.7926,167,151,318,1
+89,classical-baseline,local (TCP loopback),1.8138,167,151,318,1
+90,classical-baseline,local (TCP loopback),1.8819,167,151,318,1
+91,classical-baseline,local (TCP loopback),1.84,167,151,318,1
+92,classical-baseline,local (TCP loopback),1.7919,167,151,318,1
+93,classical-baseline,local (TCP loopback),1.8433,167,151,318,1
+94,classical-baseline,local (TCP loopback),1.8347,167,151,318,1
+95,classical-baseline,local (TCP loopback),1.7324,167,151,318,1
+96,classical-baseline,local (TCP loopback),1.7916,167,151,318,1
+97,classical-baseline,local (TCP loopback),1.8386,167,151,318,1
+98,classical-baseline,local (TCP loopback),1.8163,167,151,318,1
+99,classical-baseline,local (TCP loopback),1.7707,167,151,318,1
+100,classical-baseline,local (TCP loopback),1.7774,167,151,318,1

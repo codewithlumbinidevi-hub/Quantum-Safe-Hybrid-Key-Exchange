@@ -1,7 +1,7 @@
 """
 QFF 2026 Phase 2 - PS-P1 official test payloads (same bytes on every machine).
 
-    python P1_secure_channel/gen_payloads.py            -> writes payloads/ and checks SHA-256
+    python gen_payloads.py            -> writes payloads/ and checks SHA-256
 
 Payloads: payload_1KB.bin (1,024 B), payload_100KB.bin (102,400 B), payload_10MB.bin (10,485,760 B)
 Content : SHAKE-256("QFF2026-P1-<name>") expanded to the required length.

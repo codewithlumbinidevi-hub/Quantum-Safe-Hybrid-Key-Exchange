@@ -51,4 +51,4 @@ results/raw/
 !phase1/results/raw/run_RUN-1A4FD150.csv
 !phase1/results/raw/run_RUN-504342C1.csv
 
-P1_secure_channel/payloads/*.bin
+payloads/*.bin

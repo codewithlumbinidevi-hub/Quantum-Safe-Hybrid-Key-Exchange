@@ -3,7 +3,7 @@ PS-P1 One-Command Security Test Runner.
 
 Executes tests T1 through T9 across both Post-Quantum (ML-KEM-768 + ML-DSA-65)
 and Classical Baseline (X25519 + Ed25519) suites.
-Outputs results to P1_secure_channel/results/security_tests.csv following
+Outputs results to results/security_tests.csv following
 the official kit template.
 """
 from __future__ import annotations
@@ -15,9 +15,9 @@ import sys
 import time
 from typing import List, Tuple
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from P1_secure_channel.channel import (
+from channel import (
     SUITE_CLASSICAL,
     SUITE_PQC,
     AliceSession,
@@ -33,7 +33,7 @@ from P1_secure_channel.channel import (
     UntrustedIdentityError,
     run_handshake,
 )
-from P1_secure_channel.channel.wire import (
+from channel.wire import (
     FRAME_HEADER_SIZE,
     ClientHello,
     pack_frame,
@@ -78,7 +78,7 @@ class TestResult:
         self.expected = expected
         self.observed = ""
         self.result = "FAIL"
-        self.run_command = f"python P1_secure_channel/run_security_tests.py --test {test_id}"
+        self.run_command = f"python run_security_tests.py --test {test_id}"
 
 
 def run_t1(suite_id: int) -> Tuple[bool, str]:

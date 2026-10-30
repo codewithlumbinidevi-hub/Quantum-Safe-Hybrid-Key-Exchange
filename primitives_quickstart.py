@@ -5,7 +5,7 @@ Shows the exact library calls for every primitive PS-P1 requires. It is NOT a pr
 it has no roles, no transcript binding, no identity checks and no replay protection.
 Designing and implementing those is your job.
 
-    python P1_secure_channel/primitives_quickstart.py
+    python primitives_quickstart.py
 """
 import os
 

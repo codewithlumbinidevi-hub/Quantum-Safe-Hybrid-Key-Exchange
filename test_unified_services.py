@@ -134,8 +134,7 @@ try:
 finally:
     print("\n[6] Terminating test processes...")
     try:
-        backend_proc.terminate()
-        backend_proc.kill()
+        subprocess.run(["taskkill", "/PID", str(backend_proc.pid), "/T", "/F"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except Exception:
         pass
     try:

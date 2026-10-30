@@ -23,11 +23,11 @@ import time
 from typing import Dict, List
 
 # Ensure repository root is on sys.path
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT_DIR)
 
 from common.measure import summarize, time_op
-from P1_secure_channel.channel import (
+from channel import (
     SUITE_CLASSICAL,
     SUITE_PQC,
     AliceSession,
@@ -38,7 +38,7 @@ from P1_secure_channel.channel import (
     TrustAnchorStore,
     run_handshake,
 )
-from P1_secure_channel.channel.wire import unpack_frame
+from channel.wire import unpack_frame
 
 RESULTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
 PAYLOADS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "payloads")
@@ -276,7 +276,7 @@ def run_primitive_microbenchmarks():
     print("\nRunning Cryptographic Primitive Microbenchmarks (common.measure)...")
     from cryptography.hazmat.primitives.asymmetric import ed25519, mldsa, mlkem, x25519
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-    from P1_secure_channel.channel.suite import CipherSuite
+    from channel.suite import CipherSuite
 
     results = []
 

@@ -4,7 +4,7 @@
 ==============================================================================
  Launches the unified full-stack environment from the repository root:
   - FastAPI Backend (Port 8000) serving Phase 1 hybrid exchange, quantum benchmarks,
-    and Phase 2 Quantum-Safe Secure Communication Channel (P1_secure_channel)
+    and Phase 2 Quantum-Safe Secure Communication Channel (Root-integrated Phase 2 Channel)
   - Vite Frontend (Port 5173) serving unified navigation for Phase 1 and Phase 2
 ==============================================================================
 #>

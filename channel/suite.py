@@ -14,7 +14,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ed25519, mldsa, mlkem, x25519
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
-from P1_secure_channel.channel.exceptions import DowngradeError, HandshakeError, SignatureError
+from .exceptions import DowngradeError, HandshakeError, SignatureError
 
 SUITE_PQC = 0x0001
 SUITE_CLASSICAL = 0x0002

@@ -16,8 +16,8 @@ from typing import List, Tuple
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-from P1_secure_channel.channel.exceptions import InvalidTagError, SequenceNumberError
-from P1_secure_channel.channel.wire import (
+from .exceptions import InvalidTagError, SequenceNumberError
+from .wire import (
     MSG_APP_RECORD,
     REC_TYPE_CHUNK,
     REC_TYPE_FINAL,

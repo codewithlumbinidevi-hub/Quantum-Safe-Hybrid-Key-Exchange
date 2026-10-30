@@ -8,7 +8,7 @@ from __future__ import annotations
 import struct
 from typing import Tuple
 
-from P1_secure_channel.channel.exceptions import HandshakeError, RecordError
+from .exceptions import HandshakeError, RecordError
 
 FRAME_MAGIC = b"QSC1"
 FRAME_HEADER_SIZE = 9  # 4B magic + 1B msg_type + 4B length

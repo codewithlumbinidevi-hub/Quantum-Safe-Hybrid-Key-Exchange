@@ -44,29 +44,29 @@ All results, CSVs, and visualization figures can be regenerated from scratch wit
 
 ```bash
 # 1. Generate the three official payloads (1 KB, 100 KB, 10 MB) and verify official SHA-256 hashes
-python P1_secure_channel/gen_payloads.py
+python gen_payloads.py
 
 # 2. Run the one-command mandatory security test suite (T1 - T9 for PQC and Classical)
-python P1_secure_channel/run_security_tests.py
-# (Alternative: pytest P1_secure_channel/tests -v)
+python run_security_tests.py
+# (Alternative: pytest tests -v)
 
 # 3. Run the performance benchmarks (100 trials in-process, 20 trials TCP loopback, payload benchmarks)
-python P1_secure_channel/benchmark_channel.py
+python benchmark_channel.py
 
-# 4. Generate all publication figures (saved to P1_secure_channel/results/figures/)
-python P1_secure_channel/plot_results.py
+# 4. Generate all publication figures (saved to results/figures/)
+python plot_results.py
 
 # 5. Execute provenance check (verifies all reported metrics match raw per-trial CSVs with zero error)
-python P1_secure_channel/provenance_check.py
+python provenance_check.py
 
 # 6. (Optional) Run Platform B constrained profile (1 core, 128 MB budget)
-python common/run_on_platform.py --platform B -- python P1_secure_channel/benchmark_channel.py
+python common/run_on_platform.py --platform B -- python benchmark_channel.py
 
 # 7. (Optional) Run Platform D constrained WAN emulation (50ms RTT, 1 Mbps bandwidth)
-python P1_secure_channel/measure_platform_d.py
+python measure_platform_d.py
 
 # 8. Regenerate checksums and manifest
-python P1_secure_channel/generate_manifest.py
+python generate_manifest.py
 ```
 
 **Expected run time on Platform A**: $\approx 1.5$ minutes total for all tests, 240+ handshake trials, and full payload transfers.
@@ -102,8 +102,8 @@ No cryptographic primitives are self-implemented. All algorithms use standardize
 
 ## 6. Tests: Mandatory Security Suite (T1–T9)
 
-Run command: `python P1_secure_channel/run_security_tests.py`  
-Recorded results: [`P1_secure_channel/results/security_tests.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/security_tests.csv)
+Run command: `python run_security_tests.py`  
+Recorded results: [`results/security_tests.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/security_tests.csv)
 
 | ID | Test Name | Injected Fault | Expected Result | Observed Behavior | Status |
 |---|---|---|---|---|---|
@@ -122,7 +122,7 @@ Recorded results: [`P1_secure_channel/results/security_tests.csv`](file:///c:/Us
 ## 7. Results: Benchmark Summary & Visualizations
 
 ### 7.1 Handshake Latency and Wire Bytes
-From [`P1_secure_channel/results/handshake_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/handshake_results.csv):
+From [`results/handshake_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/handshake_results.csv):
 
 | Metric | Classical Baseline (`0x0002`) | PQC Suite (`0x0001`) | PQC / Classical Trade-off |
 |---|---|---|---|
@@ -135,7 +135,7 @@ From [`P1_secure_channel/results/handshake_results.csv`](file:///c:/Users/LUMBIN
 | **Total Handshake Bytes on Wire** | **318 B** | **9,016 B** | **$28.35\times$ expansion** |
 
 ### 7.2 Official Payloads Processing (AES-256-GCM Streaming)
-From [`P1_secure_channel/results/payload_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/payload_results.csv):
+From [`results/payload_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/payload_results.csv):
 
 | Payload | Size | Chunks (64 KB) | Overhead Bytes | Median Encrypt | Median Decrypt | Throughput | SHA-256 Match |
 |---|---|---|---|---|---|---|---|
@@ -144,11 +144,11 @@ From [`P1_secure_channel/results/payload_results.csv`](file:///c:/Users/LUMBINI%
 | `payload_10MB.bin` | 10,485,760 B | 160 | 6,080 B | 20.85 ms | 24.10 ms | >415 MB/s | **MATCH** |
 
 ### 7.3 Visualization Figures
-- Handshake Latency Comparison: [`P1_secure_channel/results/figures/handshake_latency_comparison.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/figures/handshake_latency_comparison.png)
-- Wire Bytes Breakdown: [`P1_secure_channel/results/figures/wire_bytes_breakdown.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/figures/wire_bytes_breakdown.png)
-- Primitive Breakdown: [`P1_secure_channel/results/figures/primitive_microbenchmarks.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/figures/primitive_microbenchmarks.png)
-- Payload Streaming Throughput: [`P1_secure_channel/results/figures/payload_throughput.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/figures/payload_throughput.png)
-- Platform D WAN Comparison: [`P1_secure_channel/results/figures/platform_D_comparison.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/figures/platform_D_comparison.png)
+- Handshake Latency Comparison: [`results/figures/handshake_latency_comparison.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/figures/handshake_latency_comparison.png)
+- Wire Bytes Breakdown: [`results/figures/wire_bytes_breakdown.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/figures/wire_bytes_breakdown.png)
+- Primitive Breakdown: [`results/figures/primitive_microbenchmarks.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/figures/primitive_microbenchmarks.png)
+- Payload Streaming Throughput: [`results/figures/payload_throughput.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/figures/payload_throughput.png)
+- Platform D WAN Comparison: [`results/figures/platform_D_comparison.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/figures/platform_D_comparison.png)
 
 ---
 

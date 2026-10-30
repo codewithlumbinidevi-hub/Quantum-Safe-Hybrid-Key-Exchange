@@ -103,9 +103,9 @@ We model the network as completely controlled by an active adversary (Mallory):
 
 ## 4. Security Validation: Test Suite T1–T9
 
-The mandatory test suite in [`P1_secure_channel/SECURITY_TESTS.md`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/SECURITY_TESTS.md) was executed via the one-command runner [`P1_secure_channel/run_security_tests.py`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/run_security_tests.py) and verified with `pytest P1_secure_channel/tests -v` (26/26 tests passed in 0.67s).
+The mandatory test suite in [`SECURITY_TESTS.md`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/SECURITY_TESTS.md) was executed via the one-command runner [`run_security_tests.py`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/run_security_tests.py) and verified with `pytest tests -v` (26/26 tests passed in 0.67s).
 
-### 4.1 Recorded Results Table ([`results/security_tests.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/security_tests.csv))
+### 4.1 Recorded Results Table ([`results/security_tests.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/security_tests.csv))
 
 | Test ID | Test Name | Injected Fault | Expected Result | Observed Behavior (PQC & Classical) | Status |
 |---|---|---|---|---|---|
@@ -127,7 +127,7 @@ To verify that tests actively validate cryptographic checks rather than trivial 
 ## 5. Performance Evaluation & Multi-Platform Results
 
 ### 5.1 Handshake Latency Breakdown
-From [`P1_secure_channel/results/handshake_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/handshake_results.csv):
+From [`results/handshake_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/handshake_results.csv):
 
 | Platform | Suite | Medium | Trials | Median (ms) | IQR (ms) | p95 (ms) | Mean (ms) | Stdev (ms) | Total Bytes |
 |---|---|---|---|---|---|---|---|---|---|
@@ -139,10 +139,10 @@ From [`P1_secure_channel/results/handshake_results.csv`](file:///c:/Users/LUMBIN
 | **Platform D** | PQC | 50ms RTT, 1Mbps | 20 | **181.68 ms** | 7.73 ms | 192.40 ms | 183.10 ms | 5.82 ms | 9,016 B |
 | **Platform D** | Classical | 50ms RTT, 1Mbps | 20 | **99.72 ms** | 3.17 ms | 104.10 ms | 100.25 ms | 2.41 ms | 318 B |
 
-![Handshake Latency Comparison](P1_secure_channel/results/figures/handshake_latency_comparison.png)
+![Handshake Latency Comparison](results/figures/handshake_latency_comparison.png)
 
 ### 5.2 Actual Serialized Wire Bytes Breakdown
-From [`P1_secure_channel/results/figures/wire_bytes_breakdown.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/figures/wire_bytes_breakdown.png):
+From [`results/figures/wire_bytes_breakdown.png`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/figures/wire_bytes_breakdown.png):
 
 | Message Flight | Field Contents | Classical (`0x0002`) | PQC (`0x0001`) | Expansion Ratio |
 |---|---|---|---|---|
@@ -152,7 +152,7 @@ From [`P1_secure_channel/results/figures/wire_bytes_breakdown.png`](file:///c:/U
 | **Total Handshake Bytes** | All 3 flights combined | **318 B** | **9,016 B** | **$28.35\times$** |
 
 ### 5.3 Cryptographic Primitive Microbenchmarks
-From [`P1_secure_channel/results/primitive_breakdown.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/primitive_breakdown.csv):
+From [`results/primitive_breakdown.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/primitive_breakdown.csv):
 
 | Operation | Primitive | Median Time (ms) | IQR (ms) |
 |---|---|---|---|
@@ -168,10 +168,10 @@ From [`P1_secure_channel/results/primitive_breakdown.csv`](file:///c:/Users/LUMB
 | Classical Sig Verify | Ed25519 | 0.166 ms | 0.019 ms |
 | Key Schedule | HKDF-SHA256 | 0.043 ms | 0.001 ms |
 
-![Primitive Breakdown](P1_secure_channel/results/figures/primitive_microbenchmarks.png)
+![Primitive Breakdown](results/figures/primitive_microbenchmarks.png)
 
 ### 5.4 Official Payload Processing (AES-256-GCM)
-From [`P1_secure_channel/results/payload_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/payload_results.csv):
+From [`results/payload_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/payload_results.csv):
 
 | Payload Name | Size | Chunks | Overhead Bytes | Median Encrypt | Median Decrypt | Throughput (Enc / Dec) | SHA-256 Check |
 |---|---|---|---|---|---|---|---|
@@ -179,7 +179,7 @@ From [`P1_secure_channel/results/payload_results.csv`](file:///c:/Users/LUMBINI%
 | `payload_100KB.bin` | 102,400 B | 2 | 76 B | 0.086 ms | 0.078 ms | 1,135.5 / 1,247.2 MB/s | **MATCH** |
 | `payload_10MB.bin` | 10,485,760 B | 160 | 6,080 B | 20.85 ms | 24.10 ms | 479.6 / 415.0 MB/s | **MATCH** |
 
-![Payload Throughput](P1_secure_channel/results/figures/payload_throughput.png)
+![Payload Throughput](results/figures/payload_throughput.png)
 
 ---
 
@@ -235,9 +235,9 @@ Once session keys are established, both suites use AES-256-GCM. Payload encrypti
 - **Deterministic Repetition**: All reported numbers are computed from raw per-trial CSV logs (`raw_handshake_trials.csv` and `raw_payload_trials.csv`) verified by `provenance_check.py`.
 - **Primary Commands**:
   - `python common/env_check.py` $\to$ Environment validation.
-  - `python P1_secure_channel/run_security_tests.py` $\to$ Security tests T1–T9.
-  - `python P1_secure_channel/benchmark_channel.py` $\to$ Handshake and payload benchmarks.
-  - `python P1_secure_channel/plot_results.py` $\to$ Figure generation.
-  - `python P1_secure_channel/provenance_check.py` $\to$ Provenance verification.
+  - `python run_security_tests.py` $\to$ Security tests T1–T9.
+  - `python benchmark_channel.py` $\to$ Handshake and payload benchmarks.
+  - `python plot_results.py` $\to$ Figure generation.
+  - `python provenance_check.py` $\to$ Provenance verification.
 - **Reference Environment**: Python 3.10.11 on AMD64 Windows 10, `cryptography==50.0.2`, `pqcrypto==1.0.0`, `psutil==7.2.2`.
 

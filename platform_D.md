@@ -22,11 +22,11 @@ Because post-quantum lattice primitives produce substantially larger public keys
 
 ## 3. How to Reproduce
 ```bash
-python P1_secure_channel/measure_platform_d.py
+python measure_platform_d.py
 ```
 Output:
-- CSV: `P1_secure_channel/results/platform_D_results.csv`
-- Figure: `P1_secure_channel/results/figures/platform_D_comparison.png`
+- CSV: `results/platform_D_results.csv`
+- Figure: `results/figures/platform_D_comparison.png`
 
 ---
 
@@ -40,7 +40,7 @@ Output:
 
 ## 5. Results vs Platform A and Platform B
 
-From [`P1_secure_channel/results/platform_D_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/P1_secure_channel/results/platform_D_results.csv):
+From [`results/platform_D_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/platform_D_results.csv):
 
 | Platform | Network Profile | PQC Handshake Latency (Median) | Classical Handshake Latency (Median) | Latency Ratio (PQC / Classical) | Total Wire Bytes (PQC / Classical) |
 |---|---|---|---|---|---|
@@ -49,7 +49,7 @@ From [`P1_secure_channel/results/platform_D_results.csv`](file:///c:/Users/LUMBI
 | **Platform B** | 1 Core, 128 MB Budget | **6.64 ms** | **1.44 ms** | $4.60\times$ | 9,016 B / 318 B ($28.35\times$) |
 | **Platform D** | **50ms RTT, 1 Mbps WAN** | **181.68 ms** | **99.72 ms** | **$1.82\times$** | **9,016 B / 318 B ($28.35\times$)** |
 
-![Platform D Comparison](P1_secure_channel/results/figures/platform_D_comparison.png)
+![Platform D Comparison](results/figures/platform_D_comparison.png)
 
 ---
 

@@ -10,9 +10,9 @@ import sys
 import pytest
 
 # Ensure repository root is on sys.path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from P1_secure_channel.channel import (
+from channel import (
     SUITE_CLASSICAL,
     SUITE_PQC,
     AliceSession,
@@ -29,7 +29,7 @@ from P1_secure_channel.channel import (
     UntrustedIdentityError,
     run_handshake,
 )
-from P1_secure_channel.channel.wire import (
+from channel.wire import (
     FRAME_HEADER_SIZE,
     MSG_CLIENT_HELLO,
     MSG_SERVER_HELLO,

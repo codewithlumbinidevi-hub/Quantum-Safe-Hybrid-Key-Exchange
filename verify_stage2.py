@@ -15,9 +15,9 @@ import sys
 import threading
 import time
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from P1_secure_channel.channel import (
+from channel import (
     SUITE_PQC,
     AliceSession,
     BobSession,

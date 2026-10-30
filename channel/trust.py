@@ -12,7 +12,7 @@ from typing import Dict, Tuple
 
 from cryptography.hazmat.primitives.asymmetric import ed25519, mldsa
 
-from P1_secure_channel.channel.exceptions import UntrustedIdentityError
+from .exceptions import UntrustedIdentityError
 
 
 class IdentityKeyPair:

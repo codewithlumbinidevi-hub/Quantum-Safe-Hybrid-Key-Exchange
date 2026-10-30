@@ -13,22 +13,22 @@ import struct
 import time
 from typing import NamedTuple, Optional, Set, Tuple
 
-from P1_secure_channel.channel.exceptions import (
+from .exceptions import (
     DowngradeError,
     HandshakeError,
     SignatureError,
     UntrustedIdentityError,
 )
-from P1_secure_channel.channel.record import RecordLayer
-from P1_secure_channel.channel.suite import (
+from .record import RecordLayer
+from .suite import (
     SUITE_CLASSICAL,
     SUITE_PQC,
     SUPPORTED_SUITES,
     CipherSuite,
 )
-from P1_secure_channel.channel.transcript import TranscriptAccumulator
-from P1_secure_channel.channel.trust import IdentityKeyPair, TrustAnchorStore
-from P1_secure_channel.channel.wire import (
+from .transcript import TranscriptAccumulator
+from .trust import IdentityKeyPair, TrustAnchorStore
+from .wire import (
     FRAME_HEADER_SIZE,
     FRAME_MAGIC,
     MSG_CLIENT_AUTH,

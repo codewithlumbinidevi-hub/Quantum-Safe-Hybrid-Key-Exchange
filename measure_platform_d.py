@@ -14,11 +14,11 @@ import sys
 import time
 from typing import Dict, Tuple
 
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT_DIR)
 
 from common.measure import summarize
-from P1_secure_channel.channel import (
+from channel import (
     SUITE_CLASSICAL,
     SUITE_PQC,
     AliceSession,
@@ -27,8 +27,8 @@ from P1_secure_channel.channel import (
     TrustAnchorStore,
     run_handshake,
 )
-from P1_secure_channel.channel.handshake import Transport
-from P1_secure_channel.channel.wire import unpack_frame
+from channel.handshake import Transport
+from channel.wire import unpack_frame
 
 RESULTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
 

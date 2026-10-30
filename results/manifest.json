@@ -24,8 +24,8 @@
     "bytes": 27415
   },
   "security_tests.csv": {
-    "sha256": "592d8ef02b05e997f15ef92096da7254db3e986ffa5ed03679dc0d1a42ccff03",
-    "bytes": 3284
+    "sha256": "cf9d15a50872e11ef28cfc935c56c552535bb5605df178051eb990f5c74065a0",
+    "bytes": 3121
   },
   "figures/handshake_latency_comparison.png": {
     "sha256": "a416ca7b86a428fd3e47651bfc526a1cbaf916de0f63a3a86a0ce750a276a5f8",

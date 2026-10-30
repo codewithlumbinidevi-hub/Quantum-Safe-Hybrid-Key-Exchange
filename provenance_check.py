@@ -13,7 +13,7 @@ import os
 import sys
 
 # Ensure repository root is on sys.path
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT_DIR)
 
 from common.measure import summarize

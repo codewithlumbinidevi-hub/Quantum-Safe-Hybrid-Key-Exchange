@@ -15,7 +15,7 @@
 
 ## 1. Summary
 
-Q-SHIELD PS-P1 implements an end-to-end authenticated, confidential, and replay-protected quantum-safe communication channel between Alice (Initiator) and Bob (Responder). Built using vetted, standardized primitives—**ML-KEM-768** (NIST FIPS 203) for post-quantum key establishment, **ML-DSA-65** (NIST FIPS 204) for post-quantum mutual authentication, **HKDF-SHA256** (RFC 5869) for directional key derivation, and **AES-256-GCM** (NIST SP 800-38D) for chunked authenticated encryption—the system binds endpoint identities, protocol versions, algorithm choices, and all ephemeral key material into a canonical session transcript. An identical Classical Baseline (**X25519 + Ed25519**) operates behind the exact same interface and wire format, providing an empirical benchmark that demonstrates a $28.35\times$ handshake wire byte expansion and a 2.05$\times$ local latency overhead on Platform A. The complete mandatory test suite (**T1–T9**) passes with 100% automated fault injection validation, zero plaintext release upon tampering, and byte-exact verification of all official payloads (1 KB, 100 KB, 10 MB).
+Q-SHIELD PS-P1 implements an end-to-end authenticated, confidential, and replay-protected quantum-safe communication channel between Alice (Initiator) and Bob (Responder). Built using vetted, standardized primitives—**ML-KEM-768** (NIST FIPS 203) for post-quantum key establishment, **ML-DSA-65** (NIST FIPS 204) for post-quantum mutual authentication, **HKDF-SHA256** (RFC 5869) for directional key derivation, and **AES-256-GCM** (NIST SP 800-38D) for chunked authenticated encryption—the system binds endpoint identities, protocol versions, algorithm choices, and all ephemeral key material into a canonical session transcript. An identical Classical Baseline (**X25519 + Ed25519**) operates behind the exact same interface and wire format, providing an empirical benchmark that demonstrates a $28.35\times$ handshake wire byte expansion ($+27.35\times$ extra bytes) and an empirical latency comparison across $N=100$ trials (PQC median 4.75 ms vs Classical 2.32 ms on Platform A). The complete mandatory test suite (**T1–T9**) passes with 100% automated fault injection validation, zero plaintext release upon tampering, and byte-exact verification of all official payloads (1 KB, 100 KB, 10 MB).
 
 > [!NOTE]
 > **Prototype Statement**: This software is an academic hackathon prototype engineered for Qiskit Fall Fest 2026. It is not intended for commercial production cryptographic deployment without formal verification and production side-channel hardened hardware enclaves.
@@ -91,6 +91,11 @@ npm run dev
 # Open browser at: http://localhost:5173
 ```
 
+> [!NOTE]
+> **Architectural Separation & Standalone Execution**:
+> The Phase 2 backend routes and frontend UI live in `phase1/backend` and `phase1/frontend` to provide a single, unified research dashboard without running duplicate server stacks or duplicating dependencies.
+> Crucially, the core Phase 2 cryptographic engine (`channel/`), tests (`tests/`), payloads (`payloads/`), benchmarks, and verification tools reside directly at the repository root and are completely self-contained. The one-command mandatory security tests (`python run_security_tests.py` or `pytest tests/test_security.py -v`) and performance benchmarks run directly from the repository root and require **neither the backend nor the frontend to be running**.
+
 ---
 
 ## 5. Repository Layout
@@ -109,11 +114,12 @@ qff26/
 |   `-- run_on_platform.py      # Platform A / Platform B executor
 |-- docs/                       # Architectural & methodological documentation
 |   |-- BENCHMARK_METHOD.md     # In-depth timer boundaries, quartile formulas, symmetry audit
-|   `-- AUDIT_PHASE2.md         # Read-only audit report
+|   `-- AUDIT_PHASE2.md         # Historical pre-hardening audit report snapshot
 |-- payloads/                   # Official challenge payloads (1 KB, 100 KB, 10 MB)
 |-- results/                    # Generated CSVs, raw trial logs, figures, SHA256SUMS
 |-- tests/                      # Pytest automated test suite (29/29 passed)
 |-- tools/                      # Automated verification and provenance tools
+|   |-- sync_reports.py         # Dynamic document synchronizer from CSV data
 |   `-- verify_results.py       # Recomputes stats from raw CSVs; checks API & formula parity
 |-- phase1/                     # Preserved legacy Phase 1 submission (PS-P2 scanner removed)
 |-- benchmark_channel.py        # Comprehensive performance benchmark runner (N=100)
@@ -131,15 +137,15 @@ qff26/
 ### 6.1 Handshake Latency and Wire Bytes ($N=100$ Trials Each)
 From [`results/handshake_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/handshake_results.csv) and [`results/platform_D_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/platform_D_results.csv):
 
-| Metric | Classical Baseline (`0x0002`) | PQC Suite (`0x0001`) | PQC / Classical Trade-off |
+| Metric | Classical Baseline (`0x0002`) | PQC Suite (`0x0001`) | Measured Trade-off & Variance Note |
 |---|---|---|---|
-| **Handshake Latency (`local (in-process)`, Median)** | 2.32 ms (IQR 4.40 ms) | 4.75 ms (IQR 2.48 ms) | 2.05$\times$ slower |
-| **Handshake Latency (`local (TCP loopback)`, Median)** | 1.91 ms (IQR 0.28 ms) | 5.52 ms (IQR 2.40 ms) | 2.89$\times$ slower |
-| **Handshake Latency (`emulated link (local, throttled)`, Median)** | 100.06 ms (IQR 3.83 ms) | 177.20 ms (IQR 14.28 ms) | +77.14 ms penalty |
-| **ClientHello Wire Bytes** | 90 B | 1,242 B | $13.8\times$ expansion |
-| **ServerHello Wire Bytes** | 151 B | 4,452 B | $29.5\times$ expansion |
-| **ClientAuth Wire Bytes** | 77 B | 3,322 B | $43.1\times$ expansion |
-| **Total Handshake Bytes on Wire** | **318 B** | **9,016 B** | **$28.35\times$ expansion** |
+| **Handshake Latency (`local (in-process)`)** | Median: 2.32 ms (IQR: 4.40 ms) | Median: 4.75 ms (IQR: 2.48 ms) | ~2.05$\times$ slowdown (subject to thread scheduling jitter) |
+| **Handshake Latency (`local (TCP loopback)`)** | Median: 1.91 ms (IQR: 0.28 ms) | Median: 5.52 ms (IQR: 2.40 ms) | ~2.89$\times$ slowdown |
+| **Handshake Latency (`emulated link (local, throttled)`)** | Median: 100.06 ms (IQR: 3.83 ms) | Median: 177.20 ms (IQR: 14.28 ms) | +77.14 ms penalty (90.2% wire transmission delay) |
+| **ClientHello Wire Bytes** | 90 B | 1,242 B | $13.80\times$ expansion |
+| **ServerHello Wire Bytes** | 151 B | 4,452 B | $29.48\times$ expansion |
+| **ClientAuth Wire Bytes** | 77 B | 3,322 B | $43.14\times$ expansion |
+| **Total Handshake Bytes on Wire** | **318 B** | **9,016 B** | **$28.35\times$ total size** ($+27.35\times$ extra bytes) |
 
 ### 6.2 Official Payloads Processing (AES-256-GCM Streaming, $N=100$)
 From [`results/payload_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/payload_results.csv):

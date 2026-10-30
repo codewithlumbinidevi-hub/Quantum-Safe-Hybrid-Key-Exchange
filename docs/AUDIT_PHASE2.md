@@ -1,5 +1,10 @@
 # PS-P1 Quantum-Safe Secure Communication Channel: Comprehensive Audit Report
 
+> [!WARNING]
+> **PRE-HARDENING HISTORICAL AUDIT SNAPSHOT**
+> This document records an earlier point-in-time audit conducted prior to the submission hardening sprint.
+> All benchmark metrics, trial counts ($N=20$ in early trials vs current $N=100$), wire size tables, and security test formulations recorded in this snapshot are **superseded by [`report.md`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/report.md)**, [`README.md`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/README.md), and the verified results in [`results/`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/).
+
 **Target:** Q-SHIELD PS-P1 (Qiskit Fall Fest 2026 Phase 2)  
 **Standard References:** NIST FIPS 203 (ML-KEM-768), NIST FIPS 204 (ML-DSA-65), RFC 5869 (HKDF-SHA256), NIST SP 800-38D (AES-256-GCM), RFC 7748 (X25519), RFC 8032 (Ed25519)  
 **Auditor:** Antigravity Automated Read-Only Audit Suite  

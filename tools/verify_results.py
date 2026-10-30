@@ -276,19 +276,34 @@ def verify_backend_api_parity() -> bool:
     print("4. VERIFYING BACKEND API ENDPOINT PARITY (/api/channel/benchmark/latest)")
     print("=" * 80)
 
+    api_data = None
+    # 1. Try querying a running backend server via HTTP first (standard library urllib)
     try:
-        p1_dir = str(ROOT_DIR / "phase1")
-        if p1_dir not in sys.path:
-            sys.path.insert(0, p1_dir)
-        from backend.app.api.channel import get_latest_benchmarks
-        api_data = asyncio.run(get_latest_benchmarks())
-    except (ImportError, ModuleNotFoundError) as exc:
-        print(f"  [INFO] FastAPI / backend dependencies not installed in this Python environment ({exc}).")
-        print(f"  [SKIP] Skipping live API endpoint parity check. Install phase1/backend/requirements.txt to run.")
-        return True
-    except Exception as exc:
-        print(f"  [FAIL] Error invoking get_latest_benchmarks(): {exc}")
-        return False
+        import urllib.request
+        req = urllib.request.Request("http://127.0.0.1:8000/api/channel/benchmark/latest", headers={"Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=1.0) as resp:
+            if resp.status == 200:
+                api_data = json.loads(resp.read().decode("utf-8"))
+                print("  [INFO] Connected to live running FastAPI server at http://127.0.0.1:8000")
+    except Exception:
+        pass
+
+    # 2. If no server running, invoke the route handler function in-process
+    if api_data is None:
+        try:
+            p1_dir = str(ROOT_DIR / "phase1")
+            if p1_dir not in sys.path:
+                sys.path.insert(0, p1_dir)
+            from backend.app.api.channel import get_latest_benchmarks
+            api_data = asyncio.run(get_latest_benchmarks())
+            print("  [INFO] Invoked backend.app.api.channel.get_latest_benchmarks() in-process")
+        except (ImportError, ModuleNotFoundError) as exc:
+            print(f"  [INFO] FastAPI / backend dependencies not installed in this Python environment ({exc}).")
+            print(f"  [SKIP] Skipping live API endpoint parity check. Install phase1/backend/requirements.txt to run.")
+            return True
+        except Exception as exc:
+            print(f"  [FAIL] Error invoking get_latest_benchmarks(): {exc}")
+            return False
 
     all_ok = True
 
@@ -379,7 +394,7 @@ def verify_platform_d_consistency_check() -> bool:
 
     print(f"  PQC Handshake Bytes         : {pqc_bytes} B")
     print(f"  Classical Handshake Bytes   : {cls_bytes} B")
-    print(f"  Delta Bytes                 : {delta_bytes} B (+{delta_bytes/cls_bytes:.2f}x expansion)")
+    print(f"  Delta Bytes                 : {delta_bytes} B (+{delta_bytes/cls_bytes:.2f}x extra bytes; total ratio {pqc_bytes/cls_bytes:.2f}x)")
     print(f"  Serialization Delay Diff    : {delta_serialization_ms:.3f} ms (at 1 Mbps)")
     print(f"  In-Process Compute Diff     : {delta_compute_ms:.3f} ms")
     print(f"  --------------------------------------------------")

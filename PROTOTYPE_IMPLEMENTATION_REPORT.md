@@ -5,6 +5,11 @@
 *Generated on:* October 30, 2026  
 *Status:* Complete Prototype Implementation & Empirical Evaluation  
 
+> [!WARNING]
+> **PRE-HARDENING HISTORICAL PROTOTYPE REPORT SNAPSHOT**
+> This document is a historical technical report generated prior to the submission hardening sprint.
+> Any early preliminary latency numbers (e.g. 6.64 ms, 1.44 ms), early trial counts, and preliminary wire packet summaries in this document are **superseded by the official submission report [`report.md`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/report.md)**, [`README.md`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/README.md), and [`results/handshake_results.csv`](file:///c:/Users/LUMBINI%20DEVI/Desktop/qff26/results/handshake_results.csv).
+
 ---
 
 ## Executive Summary
